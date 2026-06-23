@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Acceso al Sistema · Validación por Carnet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #1a0c0c, #2d1a1a, #3a2020);
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Tarjeta principal - Rojo y gris oscuro */
+        .login-card {
+            background: #2b2b2b;
+            background: linear-gradient(145deg, #2f2f2f, #232323);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 2.2rem 2rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(180, 60, 60, 0.5);
+            transition: transform 0.2s ease;
+            border-top: 1px solid #8b3c3c;
+            border-bottom: 1px solid #631e1e;
+        }
+
+        .login-card:hover {
+            transform: translateY(-3px);
+        }
+
+        h2 {
+            text-align: center;
+            font-weight: 800;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #ffc5c5, #ff6b6b);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .acceso-lema {
+            text-align: center;
+            color: #cfa5a5;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: rgba(100, 30, 30, 0.5);
+            display: inline-block;
+            width: auto;
+            margin: 0 auto 1.5rem auto;
+            padding: 6px 16px;
+            border-radius: 40px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            margin-bottom: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            color: #f0cfcf;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-group input {
+            background: #1e1e1e;
+            border: 1px solid #8b4545;
+            padding: 14px 18px;
+            border-radius: 60px;
+            font-size: 1rem;
+            color: #f5e6e6;
+            outline: none;
+            transition: all 0.2s;
+            font-weight: 500;
+            width: 100%;
+        }
+
+        .input-group input:focus {
+            border-color: #e05a5a;
+            background: #2a1c1c;
+            box-shadow: 0 0 0 3px rgba(220, 70, 70, 0.4);
+        }
+
+        .input-group input::placeholder {
+            color: #a77b7b;
+        }
+
+        /* Contenedor del campo carnet con ojo */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .password-wrapper input {
+            flex: 1;
+            background: #1e1e1e;
+            border: 1px solid #8b4545;
+            padding: 14px 45px 14px 18px;
+            border-radius: 60px;
+            font-size: 1rem;
+            color: #f5e6e6;
+            outline: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .password-wrapper input:focus {
+            border-color: #e05a5a;
+            background: #2a1c1c;
+            box-shadow: 0 0 0 3px rgba(220, 70, 70, 0.4);
+        }
+
+        .toggle-eye {
+            position: absolute;
+            right: 16px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 1.35rem;
+            background: #3d2a2a;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e6b3b3;
+            transition: 0.2s;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .toggle-eye:hover {
+            background: #ad4a4a;
+            color: white;
+        }
+
+        .info-nombre {
+            font-size: 0.75rem;
+            color: #b88a8a;
+            margin-top: 5px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        button.btn-ingreso {
+            width: 100%;
+            background: linear-gradient(95deg, #a52222, #6e1a1a);
+            border: none;
+            padding: 14px;
+            border-radius: 60px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #ffefef;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.5);
+        }
+
+        button.btn-ingreso:hover {
+            background: linear-gradient(95deg, #c23535, #821f1f);
+            transform: scale(0.98);
+        }
+
+        button.btn-ingreso:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal flotante */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.2s, opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-window {
+            background: linear-gradient(145deg, #332626, #241b1b);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 2rem;
+            overflow: hidden;
+            box-shadow: 0 30px 45px rgba(0, 0, 0, 0.6), 0 0 0 1px #aa4a4a;
+            transform: scale(0.92);
+            transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.5, 1.2);
+            text-align: center;
+        }
+
+        .modal-overlay.active .modal-window {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            font-size: 3.2rem;
+            padding-top: 1.5rem;
+        }
+
+        .modal-content {
+            padding: 0 1.5rem 1.8rem;
+        }
+
+        .modal-content h3 {
+            font-size: 1.8rem;
+            margin: 0.3rem 0 0.5rem;
+            font-weight: 800;
+            color: #ffcfcf;
+        }
+
+        .modal-message {
+            font-size: 1rem;
+            color: #e6cece;
+            margin: 0.5rem 0;
+            line-height: 1.5;
+        }
+
+        .modal-info {
+            background: #2a1f1f;
+            border-radius: 1.2rem;
+            padding: 0.8rem;
+            margin: 1rem 0;
+            text-align: left;
+            font-size: 0.9rem;
+            color: #f2dfdf;
+            word-break: break-word;
+            border: 1px solid #9b4b4b;
+        }
+
+        .modal-info p {
+            margin: 0.4rem 0;
+        }
+
+        .close-modal {
+            background: #8b3c3c;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: white;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 12px;
+        }
+
+        .close-modal:hover {
+            background: #b14c4c;
+        }
+
+        .success .modal-icon { color: #6fcf97; }
+        .error .modal-icon { color: #e67e7e; }
+        .warning .modal-icon { color: #f3b27a; }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .nombre-destacado {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffcc88;
+            text-align: center;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <h2>📓 Acceso a Notas</h2>
+    <div style="text-align: center;">
+        <div class="acceso-lema">🪪 Ingrese su carnet para acceder</div>
+    </div>
+
+    <!-- Campo NOMBRE Y APELLIDO (solo referencia visual, sin validación) -->
+    <div class="input-group">
+        <label><span>👤</span> Nombre y Apellido</label>
+        <input type="text" id="nombreApellidoInput" placeholder="Ej: María López García" autocomplete="off">
+        <div class="info-nombre">📌 Este campo es informativo, no se valida.</div>
+    </div>
+
+    <div class="input-group">
+        <label><span>🎫</span> Carnet (código de acceso)</label>
+        <div class="password-wrapper">
+            <input type="password" id="carnetInput" placeholder="Ej: 2024001, EST-1234, VIP-1234" autocomplete="off" class="campo-con-visor">
+            <button type="button" id="toggleCarnetBtn" class="toggle-eye" aria-label="Mostrar/ocultar carnet">
+                👁️
+            </button>
+        </div>
+    </div>
+
+    <button class="btn-ingreso" id="buscarBtn">🔐 Validar carnet y acceder</button>
+</div>
+
+<!-- Modal flotante para resultados -->
+<div id="modalGlobal" class="modal-overlay">
+    <div id="modalWindow" class="modal-window">
+        <div id="modalIconArea" class="modal-icon">🔎</div>
+        <div class="modal-content">
+            <h3 id="modalTitulo">Estado</h3>
+            <div id="modalTexto" class="modal-message"></div>
+            <div id="modalDetalles" class="modal-info"></div>
+            <button id="btnCerrarModal" class="close-modal">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+    // Configuración de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyCLFfEpuHTtZaei1ftKRI9C3R4MCog53bk",
+        authDomain: "data1010-d62e4.firebaseapp.com",
+        databaseURL: "https://data1010-d62e4-default-rtdb.firebaseio.com",
+        projectId: "data1010-d62e4",
+        storageBucket: "data1010-d62e4.firebasestorage.app",
+        messagingSenderId: "744212779430",
+        appId: "1:744212779430:web:77c69482e7fdfd1717bf67"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    
+    // Elementos del DOM
+    const carnetInput = document.getElementById('carnetInput');
+    const nombreApellidoInput = document.getElementById('nombreApellidoInput');
+    const buscarBtn = document.getElementById('buscarBtn');
+    const toggleBtn = document.getElementById('toggleCarnetBtn');
+    
+    // Modal elements
+    const modalOverlay = document.getElementById('modalGlobal');
+    const modalWindow = document.getElementById('modalWindow');
+    const modalIconArea = document.getElementById('modalIconArea');
+    const modalTitulo = document.getElementById('modalTitulo');
+    const modalTexto = document.getElementById('modalTexto');
+    const modalDetalles = document.getElementById('modalDetalles');
+    const closeModalBtn = document.getElementById('btnCerrarModal');
+    
+    // Estado del ojo
+    let isPasswordVisible = false;
+    
+    // Función para mostrar modal
+    function mostrarModal(tipo, titulo, mensaje, contenidoHTML) {
+        modalWindow.classList.remove('success', 'error', 'warning');
+        
+        if (tipo === 'success') modalWindow.classList.add('success');
+        else if (tipo === 'error') modalWindow.classList.add('error');
+        else if (tipo === 'warning') modalWindow.classList.add('warning');
+        
+        modalIconArea.innerHTML = tipo === 'success' ? '✅📘' : (tipo === 'error' ? '❌🔒' : '⚠️📝');
+        modalTitulo.innerText = titulo;
+        modalTexto.innerText = mensaje;
+        modalDetalles.innerHTML = contenidoHTML || '<p>No hay información adicional.</p>';
+        
+        modalOverlay.classList.add('active');
+    }
+    
+    function cerrarModal() {
+        modalOverlay.classList.remove('active');
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Función para guardar el carnet en localStorage y redirigir a notas26.html
+    function guardarCarnetYRedirigir(carnet, nombreCompleto) {
+        // Guardar el carnet en localStorage para que el archivo notas26.html pueda usarlo
+        localStorage.setItem('carnetAcceso', carnet);
+        localStorage.setItem('nombreEstudiante', nombreCompleto);
+        localStorage.setItem('accesoValido', 'true');
+        localStorage.setItem('timestampAcceso', Date.now().toString());
+        
+        console.log(`✅ Carnet guardado: ${carnet} - Redirigiendo a notas26.html`);
+        
+        // Mostrar mensaje rápido y redirigir
+        mostrarModal('success', 'Acceso concedido', 
+            `Bienvenido/a ${escapeHtml(nombreCompleto)}`, 
+            `<div class="nombre-destacado">✅ ${escapeHtml(nombreCompleto)}</div>
+             <p style="text-align: center; margin-top: 8px;">Carnet: ${escapeHtml(carnet)}</p>
+             <p style="text-align: center; margin-top: 8px;">🔄 Redirigiendo al sistema de notas...</p>`
+        );
+        
+        // Redirigir después de 1.5 segundos para que el usuario vea el mensaje
+        setTimeout(() => {
+            window.location.href = 'notas26.html';
+        }, 1500);
+    }
+    
+    // Función principal: buscar por carnet en Firebase Realtime Database
+    async function buscarAlumnoPorCarnet() {
+        const carnet = carnetInput.value.trim();
+        
+        if (!carnet) {
+            mostrarModal('warning', 'Campo vacío', 'Por favor, ingrese un carnet válido.', 
+                '<p>El carnet es obligatorio para acceder al sistema.</p><p>🔑 El campo "Nombre y Apellido" es solo informativo y no se valida.</p>');
+            return;
+        }
+        
+        // Mostrar estado de carga en el botón
+        const textoOriginalBtn = buscarBtn.innerHTML;
+        buscarBtn.innerHTML = '<span class="loading-spinner"></span> Verificando carnet...';
+        buscarBtn.disabled = true;
+        
+        try {
+            // Referencia a la raíz de la base de datos
+            const dbRef = ref(database);
+            const snapshot = await get(dbRef);
+            
+            if (!snapshot.exists()) {
+                mostrarModal('error', 'Sin datos', 'No se encontraron registros en la base de datos.', 
+                    '<p>La base de datos está vacía o no hay conexión.</p>');
+                return;
+            }
+            
+            const data = snapshot.val();
+            let alumnoEncontrado = null;
+            let carnetKey = null;
+            
+            // Buscar en todos los nodos principales
+            for (let key in data) {
+                const item = data[key];
+                if (item && typeof item === 'object') {
+                    // Caso 1: el objeto tiene campo 'carnet' y coincide
+                    if (item.carnet && String(item.carnet).trim() === carnet) {
+                        alumnoEncontrado = item;
+                        carnetKey = key;
+                        break;
+                    }
+                    // Caso 2: la key del nodo es el carnet (estructura plana)
+                    if (String(key).trim() === carnet) {
+                        alumnoEncontrado = item;
+                        carnetKey = key;
+                        break;
+                    }
+                }
+            }
+            
+            // Si no se encontró, buscar recursivamente
+            if (!alumnoEncontrado) {
+                function buscarRecursivo(obj, targetCarnet) {
+                    if (!obj || typeof obj !== 'object') return null;
+                    if (obj.carnet && String(obj.carnet).trim() === targetCarnet) return obj;
+                    for (let prop in obj) {
+                        if (obj[prop] && typeof obj[prop] === 'object') {
+                            let resultado = buscarRecursivo(obj[prop], targetCarnet);
+                            if (resultado) return resultado;
+                        }
+                    }
+                    return null;
+                }
+                alumnoEncontrado = buscarRecursivo(data, carnet);
+            }
+            
+            if (!alumnoEncontrado) {
+                mostrarModal('error', 'Acceso denegado', 'Carnet no registrado en el sistema.', 
+                    `<p><strong>🔎 Carnet consultado:</strong> ${escapeHtml(carnet)}</p>
+                     <p>⚠️ No existe un registro con este código de acceso.</p>
+                     <p style="font-size:0.8rem;">Verifique que el carnet sea correcto.</p>
+                     <p style="font-size:0.8rem; margin-top:8px;">💡 El campo "Nombre y Apellido" es solo informativo, no afecta la validación.</p>`
+                );
+                return;
+            }
+            
+            // Extraer el nombre completo del estudiante (priorizando diferentes campos posibles)
+            const nombreCompleto = alumnoEncontrado.nombre || 
+                                    alumnoEncontrado.nombreCompleto || 
+                                    alumnoEncontrado.nombre_estudiante ||
+                                    alumnoEncontrado.nombre_completo ||
+                                    alumnoEncontrado.estudiante ||
+                                    "Estudiante registrado";
+            
+            // Guardar el carnet y redirigir a notas26.html
+            guardarCarnetYRedirigir(carnet, nombreCompleto);
+            
+        } catch (error) {
+            console.error("Error al consultar Firebase:", error);
+            mostrarModal('error', 'Error de conexión', 'No se pudo conectar con la base de datos.', 
+                `<p>❌ Error: ${escapeHtml(error.message)}</p>
+                 <p>Verifique su conexión a internet o contacte al administrador.</p>`
+            );
+        } finally {
+            buscarBtn.innerHTML = textoOriginalBtn;
+            buscarBtn.disabled = false;
+        }
+    }
+    
+    // Eventos
+    buscarBtn.addEventListener('click', buscarAlumnoPorCarnet);
+    closeModalBtn.addEventListener('click', cerrarModal);
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) cerrarModal();
+    });
+    
+    // Presionar Enter en el input del carnet (el campo nombre no acciona la búsqueda)
+    carnetInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            buscarAlumnoPorCarnet();
+        }
+    });
+    
+    // El campo de nombre no tiene acción al presionar Enter (solo visual)
+    nombreApellidoInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            // No hacemos nada, solo para evitar que envíe algo inesperado
+        }
+    });
+    
+    // Función OJO: mostrar/ocultar carnet
+    function toggleCarnetVisibility() {
+        if (isPasswordVisible) {
+            carnetInput.type = 'password';
+            toggleBtn.innerHTML = '👁️';
+            toggleBtn.setAttribute('aria-label', 'Mostrar carnet');
+            isPasswordVisible = false;
+        } else {
+            carnetInput.type = 'text';
+            toggleBtn.innerHTML = '🙈';
+            toggleBtn.setAttribute('aria-label', 'Ocultar carnet');
+            isPasswordVisible = true;
+        }
+        carnetInput.focus();
+    }
+    
+    toggleBtn.addEventListener('click', toggleCarnetVisibility);
+    carnetInput.type = 'password';
+    isPasswordVisible = false;
+    
+    // Placeholders
+    carnetInput.placeholder = "Ej: 2024001, EST-1234, VIP-1234";
+    nombreApellidoInput.placeholder = "Ej: María López García (solo referencia)";
+    
+    // Mensaje en consola
+    console.log("✅ Sistema de acceso con Firebase | Solo el carnet es validado | Al encontrar el carnet se guarda y redirige a notas26.html");
+    
+    // Doble click en el título para mostrar ayuda
+    const tituloElem = document.querySelector('h2');
+    tituloElem.addEventListener('dblclick', () => {
+        console.log("📌 Estructura esperada en Firebase Realtime Database:\n" +
+                    "  - Opción 1: { 'carnet': '123456', 'nombre': 'Ana Pérez', ... }\n" +
+                    "  - Opción 2: { 'alumnos': { 'ID1': { 'carnet': 'ABC123', 'nombre': 'Juan', ... } } }\n" +
+                    "  - El sistema busca recursivamente cualquier nodo que contenga 'carnet'.\n" +
+                    "  - Solo se valida el carnet. El campo nombre es visual.\n" +
+                    "  - Al encontrar el carnet, se guarda en localStorage y se redirige a notas26.html");
+        mostrarModal('warning', 'Ayuda rápida', 'Estructura de la base de datos', 
+            `<p>🔍 La base de datos debe contener objetos con al menos:</p>
+             <ul style="margin-left: 20px; margin-top: 8px;">
+                <li><strong>carnet</strong> (string) → clave de acceso (OBLIGATORIO)</li>
+                <li><strong>nombre</strong> (string) → nombre del estudiante (OPCIONAL)</li>
+             </ul>
+             <p>Ejemplo válido:</p>
+             <code style="background:#3a2a2a; display:block; padding:8px; border-radius:8px; font-size:0.8rem;">
+             {
+               "carnet": "2024001",
+               "nombre": "María López García",
+               "carrera": "Ingeniería"
+             }
+             </code>
+             <p style="margin-top:8px;">✅ Solo se valida el CARNET. El campo "Nombre y Apellido" del login es informativo.</p>
+             <p style="margin-top:8px;">📁 Al validar, se guarda el carnet y se redirige a <strong>notas26.html</strong></p>`
+        );
+    });
+</script>
+</body>
+</html>

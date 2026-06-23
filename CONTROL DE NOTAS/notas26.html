@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Sistema de Notas · Acceso Automático por Carnet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #1a0c0c, #2d1a1a, #3a2020);
+            background-attachment: fixed;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #2b2b2b;
+            background: linear-gradient(145deg, #2f2f2f, #232323);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(180, 60, 60, 0.5);
+            overflow: hidden;
+            border-top: 1px solid #8b3c3c;
+            border-bottom: 1px solid #631e1e;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2a1a1a, #1a0f0f);
+            padding: 1.2rem 1rem;
+            color: white;
+            text-align: center;
+            border-bottom: 1px solid #8b4545;
+        }
+
+        .header h1 {
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #ffc5c5, #ff6b6b);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .header h1 i {
+            font-size: 1.6rem;
+            color: #ff6b6b;
+        }
+
+        .header p {
+            margin-top: 6px;
+            opacity: 0.85;
+            font-size: 0.75rem;
+            color: #cfa5a5;
+        }
+
+        .content {
+            padding: 1rem;
+        }
+
+        .search-wrapper {
+            display: none;
+        }
+
+        .status-area {
+            min-height: 55px;
+            margin: 0 0 15px 0;
+        }
+
+        .alert {
+            padding: 10px 15px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            flex-wrap: wrap;
+        }
+
+        .alert-info {
+            background: #3d2a2a;
+            color: #ffb3b3;
+            border: 1px solid #8b4545;
+        }
+
+        .alert-success {
+            background: #2a3a2a;
+            color: #a5d6a5;
+            border: 1px solid #5a8b5a;
+        }
+
+        .alert-error {
+            background: #4a2a2a;
+            color: #ffaaaa;
+            border: 1px solid #b14c4c;
+        }
+
+        .alert-warning {
+            background: #4a3a2a;
+            color: #ffcc88;
+            border: 1px solid #b87a4c;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #8b4545;
+            border-radius: 50%;
+            border-top-color: #ff6b6b;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .pdf-btn-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-pdf {
+            background: #8b3c3c;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-pdf:hover {
+            background: #b14c4c;
+            transform: translateY(-1px);
+        }
+
+        .btn-pdf:disabled {
+            background: #5a3a3a;
+            cursor: not-allowed;
+        }
+
+        /* Info del alumno - fondo rojo/gris */
+        .student-header {
+            background: #2a1f1f;
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #8b4545;
+        }
+
+        .student-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #ffcfcf;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .student-carnet {
+            color: #cfa5a5;
+            font-size: 0.8rem;
+        }
+
+        /* CONTENEDOR DE NOTAS - FONDO BLANCO */
+        .report-content-white {
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .materias-container {
+            background: #ffffff;
+            border-radius: 20px;
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+        }
+
+        .section-title {
+            background: #f8f9fc;
+            padding: 12px 18px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .section-title h3 {
+            color: #1e4663;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .materias-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            min-width: 500px;
+        }
+
+        .materias-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: #f9fafb;
+            color: #374151;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .materias-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+            color: #1f2937;
+        }
+
+        .materias-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .materias-table tr:hover {
+            background: #fef2f2;
+        }
+
+        .codigo-materia {
+            font-family: monospace;
+            font-weight: 600;
+            background: #fee2e2;
+            padding: 4px 8px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 0.65rem;
+            color: #991b1b;
+        }
+
+        /* ESTILO PARA NOTAS REGISTRADAS - DISTINTIVO VISUAL (similar a condiciones) */
+        .nota-cell {
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        /* Badge para notas registradas - con fondo verde como las condiciones */
+        .nota-badge-registrada {
+            display: inline-block;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .nota-badge-sin-registrar {
+            display: inline-block;
+            background: #f1f3f4;
+            color: #5e6c7a;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .condicion-badge {
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: inline-block;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .condicion-aprobado {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .condicion-reprobado {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .condicion-sin-registrar {
+            background: #f1f3f4;
+            color: #5e6c7a;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #cfa5a5;
+        }
+
+        footer {
+            background: #2a1f1f;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #cfa5a5;
+            border-top: 1px solid #8b4545;
+        }
+
+        .btn-volver {
+            background: #4a2a2a;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            margin-bottom: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-volver:hover {
+            background: #6b3a3a;
+            transform: translateY(-1px);
+        }
+
+        .materias-container {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 8px;
+            }
+            .content {
+                padding: 0.8rem;
+            }
+            .student-name {
+                font-size: 1.1rem;
+            }
+            .materias-table th, .materias-table td {
+                padding: 6px 8px;
+                font-size: 0.65rem;
+            }
+            .codigo-materia {
+                font-size: 0.6rem;
+                padding: 2px 6px;
+            }
+            .condicion-badge {
+                font-size: 0.6rem;
+                padding: 3px 8px;
+                min-width: 80px;
+            }
+            .nota-badge-registrada, .nota-badge-sin-registrar {
+                padding: 3px 8px;
+                font-size: 0.7rem;
+                min-width: 50px;
+            }
+            .btn-pdf, .btn-volver {
+                padding: 8px 16px;
+                font-size: 0.75rem;
+            }
+            .section-title h3 {
+                font-size: 0.85rem;
+            }
+            .header h1 {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .materias-table {
+                font-size: 0.6rem;
+                min-width: 450px;
+            }
+            .student-header {
+                padding: 12px 15px;
+            }
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .pdf-btn-container, .status-area, footer, .btn-volver {
+                display: none;
+            }
+            .card {
+                box-shadow: none;
+                border: none;
+            }
+            .report-content-white {
+                background: white;
+            }
+            .nota-badge-registrada {
+                background: #d1fae5;
+                color: #065f46;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="header">
+            <h1>
+                <i class="fas fa-graduation-cap"></i> 
+                Sistema de Notas
+            </h1>
+            <p>Cargando información del estudiante...</p>
+        </div>
+
+        <div class="content">
+            <button id="volverBtn" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver al Login
+            </button>
+
+            <div id="statusArea" class="status-area">
+                <div class="alert alert-info">
+                    <i class="fas fa-spinner fa-pulse"></i> Verificando acceso automático...
+                </div>
+            </div>
+
+            <div id="resultContainer">
+                <div class="empty-state">
+                    <i class="fas fa-user-graduate fa-2x"></i>
+                    <p style="margin-top: 12px;">Cargando datos del estudiante...</p>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <i class="fas fa-database"></i> Sistema de Notas - Acceso por Carnet
+        </footer>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCLFfEpuHTtZaei1ftKRI9C3R4MCog53bk",
+        authDomain: "data1010-d62e4.firebaseapp.com",
+        databaseURL: "https://data1010-d62e4-default-rtdb.firebaseio.com",
+        projectId: "data1010-d62e4",
+        storageBucket: "data1010-d62e4.firebasestorage.app",
+        messagingSenderId: "744212779430",
+        appId: "1:744212779430:web:77c69482e7fdfd1717bf67"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const statusArea = document.getElementById('statusArea');
+    const resultContainer = document.getElementById('resultContainer');
+    const volverBtn = document.getElementById('volverBtn');
+    
+    let currentAlumnoData = null;
+    const NOTA_MINIMA_APROBACION = 61;
+
+    // PENSUM COMPLETO
+    const pensumCompleto = [
+        { año: "1° Año", codigo: "MPI-101", materia: "MATEMÁTICA PARA LA INFORMÁTICA" },
+        { año: "1° Año", codigo: "PRG-102", materia: "PROGRAMACIÓN I" },
+        { año: "1° Año", codigo: "INT-103", materia: "INGLÉS TÉCNICO" },
+        { año: "1° Año", codigo: "HDC-104", materia: "HARDWARE DE COMPUTADORAS" },
+        { año: "1° Año", codigo: "TSO-105", materia: "TALLER DE SISTEMAS OPERATIVOS" },
+        { año: "1° Año", codigo: "OTM-106", materia: "OFIMÁTICA Y TECNOLOGÍA MULTIMEDIA" },
+        { año: "1° Año", codigo: "DPW-107", materia: "DISEÑO Y PROGRAMACIÓN WEB I" },
+        { año: "2° Año", codigo: "EST-201", materia: "ESTADÍSTICA" },
+        { año: "2° Año", codigo: "PRG-202", materia: "PROGRAMACIÓN II" },
+        { año: "2° Año", codigo: "EDD-203", materia: "ESTRUCTURA DE DATOS" },
+        { año: "2° Año", codigo: "RDC-204", materia: "REDES DE COMPUTADORAS I" },
+        { año: "2° Año", codigo: "PDM-205", materia: "PROGRAMACIÓN PARA DISPOSITIVOS MÓVILES I" },
+        { año: "2° Año", codigo: "ADS-206", materia: "ANÁLISIS Y DISEÑO DE SISTEMAS I" },
+        { año: "2° Año", codigo: "DPW-207", materia: "DISEÑO Y PROGRAMACIÓN WEB II" },
+        { año: "2° Año", codigo: "BDD-208", materia: "BASE DE DATOS I" },
+        { año: "3° Año", codigo: "EMP-301", materia: "EMPRENDIMIENTO PRODUCTIVO" },
+        { año: "3° Año", codigo: "DPW-302", materia: "DISEÑO Y PROGRAMACIÓN WEB III" },
+        { año: "3° Año", codigo: "GMC-303", materia: "GESTIÓN Y MEJORAMIENTO DE LA CALIDAD DE SOFTWARE" },
+        { año: "3° Año", codigo: "RDC-304", materia: "REDES DE COMPUTADORAS II" },
+        { año: "3° Año", codigo: "TMG-305", materia: "TALLER DE MODALIDAD DE GRADUACIÓN" },
+        { año: "3° Año", codigo: "ADS-306", materia: "ANÁLISIS Y DISEÑO DE SISTEMAS II" },
+        { año: "3° Año", codigo: "PDM-307", materia: "PROGRAMACIÓN PARA DISPOSITIVOS MÓVILES II" },
+        { año: "3° Año", codigo: "BDD-308", materia: "BASE DE DATOS II" }
+    ];
+
+    function setStatus(type, message) {
+        let icon = '';
+        let className = '';
+        switch(type) {
+            case 'loading':
+                icon = '<div class="loader"></div>';
+                className = 'alert-info';
+                break;
+            case 'success':
+                icon = '<i class="fas fa-check-circle"></i>';
+                className = 'alert-success';
+                break;
+            case 'error':
+                icon = '<i class="fas fa-exclamation-triangle"></i>';
+                className = 'alert-error';
+                break;
+            case 'warning':
+                icon = '<i class="fas fa-exclamation-circle"></i>';
+                className = 'alert-warning';
+                break;
+            default:
+                icon = '<i class="fas fa-info-circle"></i>';
+                className = 'alert-info';
+        }
+        statusArea.innerHTML = `<div class="alert ${className}">${icon} <span>${message}</span></div>`;
+    }
+
+    function obtenerCondicion(nota) {
+        if (nota === null || nota === undefined || nota === "S/N" || nota === "") return { texto: "SIN REGISTRAR", clase: "condicion-sin-registrar" };
+        const num = parseFloat(nota);
+        if (isNaN(num)) return { texto: "SIN REGISTRAR", clase: "condicion-sin-registrar" };
+        if (num >= NOTA_MINIMA_APROBACION) return { texto: "APROBADO", clase: "condicion-aprobado" };
+        return { texto: "REPROBADO", clase: "condicion-reprobado" };
+    }
+
+    // Función para determinar si una nota está registrada
+    function isNotaRegistrada(nota) {
+        if (nota === null || nota === undefined || nota === "S/N" || nota === "") return false;
+        const num = parseFloat(nota);
+        if (isNaN(num)) return false;
+        return true;
+    }
+
+    // Función para obtener el badge de nota (visual como las condiciones)
+    function getNotaBadge(notaValor, notaNumerica) {
+        const registrada = isNotaRegistrada(notaNumerica !== null ? notaNumerica : notaValor);
+        if (registrada) {
+            return `<span class="nota-badge-registrada"><i class="fas fa-check-circle" style="font-size: 0.7rem; margin-right: 4px;"></i> ${notaValor}</span>`;
+        } else {
+            return `<span class="nota-badge-sin-registrar"><i class="fas fa-minus-circle" style="font-size: 0.7rem; margin-right: 4px;"></i> ${notaValor}</span>`;
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function renderizarMaterias(alumnoData, notasMap) {
+        const nombreCompleto = `${alumnoData.nombre || ''} ${alumnoData.apellido || ''}`.trim();
+        const carnet = alumnoData.carnet;
+        
+        let filasHtml = '';
+        
+        pensumCompleto.forEach((item) => {
+            const notaData = notasMap[item.codigo];
+            let notaValor = "S/N";
+            let notaNumerica = null;
+            
+            if (notaData && notaData.nota !== undefined && notaData.nota !== null) {
+                if (typeof notaData.nota === 'number') {
+                    notaValor = notaData.nota.toFixed(2);
+                    notaNumerica = notaData.nota;
+                } else {
+                    const posibleNum = parseFloat(notaData.nota);
+                    if (!isNaN(posibleNum)) {
+                        notaValor = posibleNum.toFixed(2);
+                        notaNumerica = posibleNum;
+                    } else {
+                        notaValor = notaData.nota.toString();
+                        notaNumerica = null;
+                    }
+                }
+            }
+            
+            const condicion = obtenerCondicion(notaNumerica !== null ? notaNumerica : "S/N");
+            const notaBadge = getNotaBadge(notaValor, notaNumerica);
+            
+            filasHtml += `
+                <tr>
+                    <td style="width: 90px;"><span class="codigo-materia">${escapeHtml(item.codigo)}</span></td>
+                    <td>${escapeHtml(item.materia)}</td>
+                    <td style="width: 100px;">${notaBadge}</td>
+                    <td style="width: 120px;"><span class="condicion-badge ${condicion.clase}">${condicion.texto}</span></td>
+                </tr>
+            `;
+        });
+        
+        currentAlumnoData = { nombre: nombreCompleto, carnet: carnet };
+        
+        const html = `
+            <div class="pdf-btn-container">
+                <button id="downloadPdfBtn" class="btn-pdf">
+                    <i class="fas fa-file-pdf"></i> Descargar PDF
+                </button>
+            </div>
+            <div id="reportContent" class="report-content-white">
+                <div class="student-header">
+                    <div class="student-name">
+                        <i class="fas fa-user-graduate"></i> ${escapeHtml(nombreCompleto)}
+                    </div>
+                    <div class="student-carnet">
+                        <i class="fas fa-id-card"></i> Carnet: ${escapeHtml(carnet)}
+                    </div>
+                </div>
+                
+                <div class="materias-container">
+                    <div class="section-title">
+                        <h3><i class="fas fa-book-open"></i> REPORTE DE MATERIAS Y NOTAS</h3>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="materias-table">
+                            <thead>
+                                <tr>
+                                    <th>CÓDIGO</th>
+                                    <th>MATERIA</th>
+                                    <th>NOTA</th>
+                                    <th>CONDICIÓN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filasHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        resultContainer.innerHTML = html;
+        
+        const pdfBtn = document.getElementById('downloadPdfBtn');
+        if (pdfBtn) {
+            pdfBtn.addEventListener('click', generarPDF);
+        }
+    }
+    
+    async function generarPDF() {
+        if (!currentAlumnoData) {
+            alert('No hay datos para generar el PDF.');
+            return;
+        }
+        
+        const btn = document.getElementById('downloadPdfBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Generando...';
+        }
+        
+        try {
+            const { jsPDF } = window.jspdf;
+            const reportElement = document.getElementById('reportContent');
+            if (!reportElement) throw new Error('No se encontró el contenido');
+            
+            reportElement.style.width = '750px';
+            reportElement.style.padding = '15px';
+            
+            await new Promise(r => setTimeout(r, 200));
+            
+            const canvas = await html2canvas(reportElement, {
+                scale: 2.5,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true
+            });
+            
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'letter'
+            });
+            
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            let imgWidth = pdfWidth - 20;
+            let imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            if (imgHeight > pdfHeight - 30) {
+                const scaleFactor = (pdfHeight - 30) / imgHeight;
+                imgWidth = imgWidth * scaleFactor;
+                imgHeight = imgHeight * scaleFactor;
+            }
+            
+            const yPosition = (pdfHeight - imgHeight) / 2;
+            
+            pdf.addImage(imgData, 'PNG', (pdfWidth - imgWidth) / 2, yPosition, imgWidth, imgHeight);
+            pdf.save(`Reporte_Notas_${currentAlumnoData.carnet}.pdf`);
+            
+            reportElement.style.width = '';
+            reportElement.style.padding = '';
+            
+        } catch (error) {
+            console.error('Error al generar PDF:', error);
+            alert('Error al generar el PDF. Intente nuevamente.');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-file-pdf"></i> Descargar PDF';
+            }
+        }
+    }
+
+    // Función para buscar automáticamente por el carnet guardado en localStorage
+    async function buscarAlumnoAutomatico() {
+        const carnetGuardado = localStorage.getItem('carnetAcceso');
+        const accesoValido = localStorage.getItem('accesoValido');
+        
+        if (!accesoValido || accesoValido !== 'true' || !carnetGuardado) {
+            setStatus('error', '⚠️ Sesión no válida. Inicie sesión desde el login.');
+            resultContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-lock fa-2x"></i>
+                    <p><strong>Acceso no autorizado</strong></p>
+                    <p>No se detectó una sesión activa.</p>
+                    <button id="irLoginBtn" style="margin-top: 20px; background: #8b3c3c; border: none; color: white; padding: 10px 20px; border-radius: 60px; cursor: pointer;">
+                        <i class="fas fa-sign-in-alt"></i> Ir al Login
+                    </button>
+                </div>
+            `;
+            const irLoginBtn = document.getElementById('irLoginBtn');
+            if (irLoginBtn) {
+                irLoginBtn.addEventListener('click', () => {
+                    window.location.href = 'login.html';
+                });
+            }
+            return;
+        }
+        
+        setStatus('loading', `🔍 Buscando información para: ${carnetGuardado}...`);
+        
+        resultContainer.innerHTML = `
+            <div style="text-align:center; padding: 40px;">
+                <div class="loader" style="margin:0 auto;"></div>
+                <p style="margin-top: 20px; color: #cfa5a5;">Consultando Firebase...</p>
+            </div>
+        `;
+
+        try {
+            const dbRef = ref(database);
+            const snapshot = await get(dbRef);
+            
+            if (!snapshot.exists()) {
+                setStatus('error', 'No se encontraron registros en la base de datos.');
+                resultContainer.innerHTML = `<div class="empty-state"><i class="fas fa-database"></i><p>Base de datos vacía</p></div>`;
+                return;
+            }
+            
+            const data = snapshot.val();
+            let alumnoEncontrado = null;
+            
+            function buscarRecursivo(obj, targetCarnet) {
+                if (!obj || typeof obj !== 'object') return null;
+                if (obj.carnet && String(obj.carnet).trim() === targetCarnet) return obj;
+                for (let prop in obj) {
+                    if (obj[prop] && typeof obj[prop] === 'object') {
+                        let resultado = buscarRecursivo(obj[prop], targetCarnet);
+                        if (resultado) return resultado;
+                    }
+                }
+                return null;
+            }
+            
+            alumnoEncontrado = buscarRecursivo(data, carnetGuardado);
+            
+            if (!alumnoEncontrado) {
+                setStatus('warning', `Carnet ${carnetGuardado} no registrado`);
+                resultContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-user-slash"></i>
+                        <p><strong>${escapeHtml(carnetGuardado)}</strong> no está registrado.</p>
+                        <div style="margin-top: 20px;">
+                            <button id="cerrarSesionBtn" style="background: #8b3c3c; border: none; color: white; padding: 10px 20px; border-radius: 60px; cursor: pointer;">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </button>
+                        </div>
+                    </div>
+                `;
+                const cerrarBtn = document.getElementById('cerrarSesionBtn');
+                if (cerrarBtn) {
+                    cerrarBtn.addEventListener('click', () => {
+                        localStorage.clear();
+                        window.location.href = 'login.html';
+                    });
+                }
+                return;
+            }
+            
+            alumnoEncontrado.carnet = carnetGuardado;
+            
+            let notasMap = {};
+            const notasRef = ref(database, `alumnos/${carnetGuardado}/notas`);
+            const notasSnapshot = await get(notasRef);
+            
+            if (notasSnapshot.exists()) {
+                const notasData = notasSnapshot.val();
+                for (const [codigoMateria, materiaData] of Object.entries(notasData)) {
+                    notasMap[codigoMateria] = {
+                        nota: materiaData.nota,
+                        nombre: materiaData.nombre || codigoMateria,
+                        fechaActualizacion: materiaData.fechaActualizacion
+                    };
+                }
+            }
+            
+            const nombreMostrar = `${alumnoEncontrado.nombre || ''} ${alumnoEncontrado.apellido || ''}`.trim() || "Estudiante";
+            setStatus('success', `✓ Bienvenido/a: ${nombreMostrar}`);
+            renderizarMaterias(alumnoEncontrado, notasMap);
+            
+        } catch (error) {
+            console.error("Error:", error);
+            setStatus('error', `Error de conexión: ${error.message.substring(0, 80)}`);
+            resultContainer.innerHTML = `<div class="empty-state"><i class="fas fa-bug"></i><p>Error al cargar datos</p></div>`;
+        }
+    }
+    
+    volverBtn.addEventListener('click', () => {
+        window.location.href = 'login.html';
+    });
+    
+    buscarAlumnoAutomatico();
+    
+    console.log("✅ Sistema de Notas - Notas con badge visual verde | Sin numerales | Responsive");
+</script>
+</body>
+</html>

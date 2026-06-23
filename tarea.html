@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Detalle Tarea | Inge Rodrigo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- 🔥 FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f2f5; }
+        :root {
+            --azul-gob: #0a2b5e;
+            --verde-cepead: #1c7e3c;
+            --amarillo: #f9b81b;
+            --morado: #9b59b6;
+            --naranja: #f39c12;
+            --rojo: #e74c3c;
+            --sombra: 0 8px 20px rgba(0,0,0,0.08);
+            --sombra-grande: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .top-bar { background: var(--azul-gob); color: white; padding: 8px 0; font-size: 12px; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+        .top-flex { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .contacto-info a, .user-area a { color: white; text-decoration: none; }
+        .contacto-info a:hover, .user-area a:hover { color: var(--amarillo); }
+        
+        .main-header { background: white; box-shadow: var(--sombra); padding: 15px 0; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { background: linear-gradient(135deg, var(--morado), #8e44ad); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+        .btn-volver { background: var(--azul-gob); color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-volver:hover { background: var(--verde-cepead); transform: translateX(-5px); }
+        
+        .tarea-detalle { background: white; border-radius: 25px; overflow: hidden; margin: 30px 0; box-shadow: var(--sombra-grande); animation: fadeIn 0.5s ease-out; }
+        .tarea-banner { background: linear-gradient(135deg, var(--azul-gob), var(--morado)); padding: 40px; color: white; position: relative; overflow: hidden; }
+        .tarea-banner::before { content: ''; position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: pulse 8s ease-in-out infinite; }
+        .tarea-banner h1 { font-size: 2rem; margin-bottom: 10px; }
+        .badge-acceso { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; }
+        .badge-libre { background: var(--verde-cepead); }
+        .badge-protegido { background: var(--naranja); }
+        
+        .tarea-info { padding: 30px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .info-card { background: #f8f9fc; padding: 18px; border-radius: 15px; text-align: center; transition: 0.3s; border: 1px solid transparent; }
+        .info-card:hover { transform: translateY(-5px); border-color: var(--verde-cepead); box-shadow: var(--sombra); }
+        .info-card i { font-size: 1.8rem; color: var(--verde-cepead); margin-bottom: 10px; }
+        .info-card h3 { font-size: 0.85rem; color: #666; margin-bottom: 5px; }
+        .info-card p { font-size: 1.1rem; font-weight: bold; color: var(--azul-gob); }
+        
+        .descripcion { margin-bottom: 30px; padding: 20px; background: #f8f9fc; border-radius: 15px; }
+        .descripcion h2 { color: var(--azul-gob); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .descripcion p { line-height: 1.6; color: #444; }
+        
+        .modal-codigo { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 9999; }
+        .modal-codigo.hidden { display: none; }
+        .modal-codigo-content { background: white; padding: 40px; border-radius: 25px; width: 90%; max-width: 420px; text-align: center; position: relative; animation: fadeIn 0.3s ease-out; }
+        .btn-cerrar-modal { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999; transition: 0.3s; }
+        .btn-cerrar-modal:hover { color: var(--rojo); transform: scale(1.1); }
+        .modal-codigo-content i { font-size: 4rem; color: var(--naranja); margin-bottom: 20px; }
+        .modal-codigo-content h3 { color: var(--azul-gob); margin-bottom: 10px; font-size: 1.5rem; }
+        .modal-codigo-content input { width: 100%; padding: 14px; margin: 15px 0; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1rem; text-align: center; transition: 0.3s; }
+        .modal-codigo-content input:focus { outline: none; border-color: var(--verde-cepead); box-shadow: 0 0 0 3px rgba(28,126,60,0.2); }
+        .btn-verificar { background: var(--verde-cepead); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1rem; transition: 0.3s; }
+        .btn-verificar:hover { background: #0f5e2e; transform: scale(1.02); }
+        .error-codigo { color: var(--rojo); font-size: 0.85rem; margin-top: 12px; display: none; }
+        
+        .archivos-section { margin: 35px 0; }
+        .archivos-section h2 { color: var(--azul-gob); margin-bottom: 25px; padding-bottom: 10px; border-bottom: 3px solid var(--verde-cepead); display: inline-block; font-size: 1.5rem; }
+        .archivo-card { background: linear-gradient(135deg, #ffffff, #f8f9fc); border-radius: 16px; margin-bottom: 15px; border: 1px solid #e0e0e0; transition: all 0.3s ease; }
+        .archivo-card:hover { transform: translateY(-3px); box-shadow: var(--sombra); border-color: var(--verde-cepead); }
+        .archivo-contenido { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; flex-wrap: wrap; gap: 15px; }
+        .archivo-info { display: flex; align-items: center; gap: 18px; flex: 1; }
+        .archivo-icon { font-size: 2.2rem; width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; background: #e8f0fe; border-radius: 12px; }
+        .archivo-texto h3 { font-size: 1.1rem; color: var(--azul-gob); margin-bottom: 5px; }
+        .archivo-texto p { font-size: 0.8rem; color: #888; }
+        .archivo-botones { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-archivo { border: none; padding: 10px 18px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; transition: all 0.3s ease; }
+        .btn-archivo-ver { background: var(--verde-cepead); color: white; }
+        .btn-archivo-ver:hover { background: #0f5e2e; transform: scale(1.05); }
+        .btn-archivo-descargar { background: var(--azul-gob); color: white; }
+        .btn-archivo-descargar:hover { background: #062045; transform: scale(1.05); }
+        
+        .bloqueado-container { text-align: center; padding: 80px 20px; background: white; border-radius: 25px; margin: 30px 0; animation: fadeIn 0.5s ease-out; }
+        .bloqueado-container i { font-size: 5rem; color: var(--naranja); margin-bottom: 25px; }
+        .bloqueado-container h2 { color: var(--azul-gob); margin-bottom: 15px; font-size: 1.8rem; }
+        .bloqueado-container p { color: #666; margin-bottom: 30px; }
+        .btn-desbloquear { background: var(--naranja); color: white; border: none; padding: 14px 35px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s; }
+        .btn-desbloquear:hover { background: #e67e22; transform: scale(1.02); }
+        
+        .loading-tarea { text-align: center; padding: 60px; color: #666; }
+        .loading-tarea i { font-size: 2rem; margin-bottom: 15px; }
+        
+        .btn-entregar {
+            background: var(--naranja);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+        .btn-entregar:hover { background: #e67e22; transform: scale(1.02); }
+        
+        footer { background: #0e1e38; color: #ccc; padding: 40px 0; margin-top: 50px; text-align: center; }
+        
+        @media (max-width: 768px) {
+            .archivo-contenido { flex-direction: column; align-items: flex-start; }
+            .archivo-botones { width: 100%; justify-content: center; }
+            .btn-archivo { flex: 1; justify-content: center; }
+            .tarea-banner h1 { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="container top-flex">
+            <div class="contacto-info">
+                <i class="fas fa-phone-alt"></i> <a href="tel:73573751">73573751</a> |
+                <i class="fas fa-envelope"></i> <a href="mailto:ing.rodrigo.laquiz@gmail.com">ing.rodrigo.laquiz@gmail.com</a>
+            </div>
+            <div class="user-area">
+                <a href="#"><i class="fab fa-tiktok"></i> @inge_rodrigo1</a>
+            </div>
+        </div>
+    </div>
+    <div class="main-header">
+        <div class="container header-flex">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-tasks"></i></div>
+                <div><h1>Inge Rodrigo</h1><span>Tareas</span></div>
+            </div>
+            <a href="tareas.html" class="btn-volver"><i class="fas fa-arrow-left"></i> Volver</a>
+        </div>
+    </div>
+    
+    <div class="container" id="tareaContent">
+        <div class="loading-tarea">
+            <i class="fas fa-spinner fa-spin"></i><br>
+            Cargando tarea...
+        </div>
+    </div>
+    
+    <div id="modalCodigo" class="modal-codigo hidden">
+        <div class="modal-codigo-content">
+            <button class="btn-cerrar-modal" onclick="cerrarModalCodigo()">&times;</button>
+            <i class="fas fa-lock"></i>
+            <h3>🔒 Tarea Protegida</h3>
+            <p>Ingresa el código de acceso proporcionado por tu docente</p>
+            <input type="text" id="codigoInput" placeholder="Código de acceso" autocomplete="off">
+            <button class="btn-verificar" onclick="verificarCodigo()">Verificar acceso</button>
+            <div id="errorCodigo" class="error-codigo">❌ Código incorrecto. Intenta nuevamente.</div>
+        </div>
+    </div>
+    
+    <footer><div class="container"><p>© 2026 | <strong>Inge Rodrigo</strong> - Transformando la educación</p></div></footer>
+    
+    <script>
+        // 🔥 CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQu6SNn9D3rIicU21R8Y2t0y3FavR20Zg",
+            authDomain: "proyectoro-82929.firebaseapp.com",
+            projectId: "proyectoro-82929",
+            storageBucket: "proyectoro-82929.firebasestorage.app",
+            messagingSenderId: "1087071310579",
+            appId: "1:1087071310579:web:6765ed8a5eded8370f1d86"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ✅ CORREGIDO: Ahora usa 'practicas' que es donde guarda el admin
+        const tareasRef = database.ref('practicas');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const tareaId = parseInt(urlParams.get('id'));
+        let tareaActual = null;
+        let codigosVerificados = JSON.parse(sessionStorage.getItem('codigosVerificadosTareas') || '{}');
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function verificarCodigo() {
+            const inputCodigo = document.getElementById('codigoInput').value.trim();
+            if (inputCodigo === tareaActual.codigoAcceso) {
+                codigosVerificados[tareaId] = true;
+                sessionStorage.setItem('codigosVerificadosTareas', JSON.stringify(codigosVerificados));
+                cerrarModalCodigo();
+                mostrarContenidoTarea();
+            } else {
+                document.getElementById('errorCodigo').style.display = 'block';
+            }
+        }
+
+        function cerrarModalCodigo() {
+            const modal = document.getElementById('modalCodigo');
+            modal.classList.add('hidden');
+            document.getElementById('codigoInput').value = '';
+            document.getElementById('errorCodigo').style.display = 'none';
+        }
+
+        function mostrarModalCodigo() {
+            const modal = document.getElementById('modalCodigo');
+            modal.classList.remove('hidden');
+        }
+
+        function mostrarContenidoTarea() {
+            const container = document.getElementById('tareaContent');
+            
+            let archivosHTML = '';
+            if (tareaActual.archivos && tareaActual.archivos.length > 0) {
+                archivosHTML = `<div class="archivos-section"><h2><i class="fas fa-paperclip"></i> Material de estudio</h2>`;
+                tareaActual.archivos.forEach(archivo => {
+                    archivosHTML += `
+                        <div class="archivo-card">
+                            <div class="archivo-contenido">
+                                <div class="archivo-info">
+                                    <div class="archivo-icon"><i class="fas fa-file-pdf"></i></div>
+                                    <div class="archivo-texto">
+                                        <h3>${escapeHtml(archivo.titulo)}</h3>
+                                        <p><i class="fas fa-file"></i> Documento</p>
+                                    </div>
+                                </div>
+                                <div class="archivo-botones">
+                                    <button class="btn-archivo btn-archivo-ver" onclick="window.open('${archivo.url}', '_blank')">
+                                        <i class="fas fa-eye"></i> Ver ahora
+                                    </button>
+                                    <button class="btn-archivo btn-archivo-descargar" onclick="window.open('${archivo.url}', '_blank')">
+                                        <i class="fas fa-download"></i> Descargar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                archivosHTML += `</div>`;
+            } else {
+                archivosHTML = `<div class="archivos-section"><p style="text-align:center; padding:40px; color:#888;"><i class="fas fa-info-circle"></i> No hay archivos adjuntos para esta tarea.</p></div>`;
+            }
+            
+            container.innerHTML = `
+                <div class="tarea-detalle">
+                    <div class="tarea-banner">
+                        <h1>${escapeHtml(tareaActual.titulo)}</h1>
+                        <p>${escapeHtml(tareaActual.materia || 'Materia')} - ${escapeHtml(tareaActual.carrera || 'Carrera')}</p>
+                        <span class="badge-acceso ${tareaActual.tipoAcceso === 'libre' ? 'badge-libre' : 'badge-protegido'}">
+                            ${tareaActual.tipoAcceso === 'libre' ? '<i class="fas fa-unlock-alt"></i> Acceso libre' : '<i class="fas fa-lock"></i> Acceso restringido'}
+                        </span>
+                    </div>
+                    <div class="tarea-info">
+                        <div class="info-grid">
+                            <div class="info-card"><i class="fas fa-graduation-cap"></i><h3>Carrera</h3><p>${escapeHtml(tareaActual.carrera || '-')}</p></div>
+                            <div class="info-card"><i class="fas fa-book"></i><h3>Materia</h3><p>${escapeHtml(tareaActual.materia || '-')}</p></div>
+                            <div class="info-card"><i class="fas fa-calendar"></i><h3>Año</h3><p>${tareaActual.anio || '-'}</p></div>
+                            ${tareaActual.fechaLimite ? `<div class="info-card"><i class="fas fa-hourglass-half"></i><h3>Fecha límite</h3><p>${tareaActual.fechaLimite}</p></div>` : ''}
+                        </div>
+                        <div class="descripcion">
+                            <h2><i class="fas fa-align-left"></i> Descripción / Enunciado</h2>
+                            <p>${escapeHtml(tareaActual.descripcion || 'Sin descripción disponible.')}</p>
+                        </div>
+                        ${archivosHTML}
+                        <div style="text-align: center;">
+                            <button class="btn-entregar" onclick="alert('✅ Tarea marcada como entregada\\n\\nRecibirás confirmación por correo.')">
+                                <i class="fas fa-check-circle"></i> Entregar tarea
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function mostrarBloqueado() {
+            const container = document.getElementById('tareaContent');
+            container.innerHTML = `
+                <div class="bloqueado-container">
+                    <i class="fas fa-lock"></i>
+                    <h2>🔒 Tarea Protegida</h2>
+                    <p>Esta tarea requiere un código de acceso para ser visualizada.<br>Solicita el código a tu docente.</p>
+                    <button class="btn-desbloquear" onclick="mostrarModalCodigo()">
+                        <i class="fas fa-key"></i> Ingresar código
+                    </button>
+                </div>
+            `;
+        }
+
+        if (!tareaId || isNaN(tareaId)) {
+            document.getElementById('tareaContent').innerHTML = `
+                <div style="text-align:center; padding:80px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size:4rem;"></i>
+                    <h2>Tarea no especificada</h2>
+                    <a href="tareas.html" class="btn-volver">← Volver</a>
+                </div>
+            `;
+        } else {
+            tareasRef.child(tareaId.toString()).once('value', (snapshot) => {
+                const data = snapshot.val();
+                const container = document.getElementById('tareaContent');
+                
+                if (!data) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:80px;">
+                            <i class="fas fa-search" style="font-size:4rem;"></i>
+                            <h2>Tarea no encontrada</h2>
+                            <a href="tareas.html" class="btn-volver">← Volver</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                tareaActual = { id: tareaId, ...data };
+                
+                if (tareaActual.tipoAcceso === 'protegido') {
+                    if (codigosVerificados[tareaId] === true) {
+                        mostrarContenidoTarea();
+                    } else {
+                        mostrarBloqueado();
+                    }
+                } else {
+                    mostrarContenidoTarea();
+                }
+            });
+        }
+
+        document.getElementById('codigoInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verificarCodigo();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modalCodigo');
+                if (!modal.classList.contains('hidden')) cerrarModalCodigo();
+            }
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalCodigo');
+            if (event.target === modal && !modal.classList.contains('hidden')) {
+                cerrarModalCodigo();
+            }
+        }
+    </script>
+</body>
+</html>

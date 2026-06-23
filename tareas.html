@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Tareas | Inge Rodrigo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- 🔥 FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', Roboto, sans-serif; }
+        
+        :root {
+            --azul-gob: #0a2b5e;
+            --verde-cepead: #1c7e3c;
+            --amarillo: #f9b81b;
+            --morado: #9b59b6;
+            --naranja: #f39c12;
+            --sombra: 0 8px 20px rgba(0,0,0,0.08);
+            
+            --color-1ro: #2ecc71;
+            --color-1ro-light: #d5f5e3;
+            --color-1ro-dark: #27ae60;
+            
+            --color-2do: #3498db;
+            --color-2do-light: #d6eaf8;
+            --color-2do-dark: #2980b9;
+            
+            --color-3ro: #9b59b6;
+            --color-3ro-light: #e8daef;
+            --color-3ro-dark: #8e44ad;
+        }
+        
+        .top-bar {
+            background: var(--azul-gob);
+            color: white;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+        .top-flex { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .contacto-info a, .user-area a { color: white; text-decoration: none; }
+        .contacto-info a:hover, .user-area a:hover { color: var(--amarillo); }
+        
+        .main-header {
+            background: white;
+            box-shadow: var(--sombra);
+            padding: 15px 0;
+        }
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo-icon {
+            background: linear-gradient(135deg, var(--morado), #8e44ad);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        .btn-volver {
+            background: var(--verde-cepead);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+        }
+        .nav-menu {
+            background: linear-gradient(135deg, var(--azul-gob), #1e4d8f);
+        }
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .nav-links li a {
+            display: block;
+            padding: 14px 22px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .nav-links li a:hover { background: var(--verde-cepead); }
+        
+        .filtros {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin: 30px 0;
+            box-shadow: var(--sombra);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+        .filtros label {
+            font-weight: bold;
+            color: var(--azul-gob);
+            font-size: 1rem;
+        }
+        .filtros select {
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-width: 180px;
+        }
+        .filtros select:focus {
+            outline: none;
+            border-color: var(--verde-cepead);
+        }
+        .filtros button {
+            background: var(--verde-cepead);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-limpiar {
+            background: #7f8c8d !important;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin: 35px 0 25px;
+            font-size: 2rem;
+            color: var(--azul-gob);
+            font-weight: 700;
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .card-tarea {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--sombra);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        .card-tarea:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .card-tarea.anio-1ro {
+            background: linear-gradient(135deg, var(--color-1ro-light), white);
+            border-left: 5px solid var(--color-1ro);
+        }
+        .card-tarea.anio-1ro .card-header {
+            background: linear-gradient(135deg, var(--color-1ro), var(--color-1ro-dark));
+        }
+        
+        .card-tarea.anio-2do {
+            background: linear-gradient(135deg, var(--color-2do-light), white);
+            border-left: 5px solid var(--color-2do);
+        }
+        .card-tarea.anio-2do .card-header {
+            background: linear-gradient(135deg, var(--color-2do), var(--color-2do-dark));
+        }
+        
+        .card-tarea.anio-3ro {
+            background: linear-gradient(135deg, var(--color-3ro-light), white);
+            border-left: 5px solid var(--color-3ro);
+        }
+        .card-tarea.anio-3ro .card-header {
+            background: linear-gradient(135deg, var(--color-3ro), var(--color-3ro-dark));
+        }
+        
+        .card-header {
+            color: white;
+            padding: 25px;
+        }
+        .card-header h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .info-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-top: 8px;
+        }
+        .badge-materia {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+        .badge-anio {
+            background: rgba(0,0,0,0.2);
+            color: white;
+        }
+        .badge-acceso {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+        .badge-acceso-protegido {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: #555;
+            background: rgba(255,255,255,0.7);
+            padding: 12px;
+            border-radius: 12px;
+        }
+        .card-meta i {
+            margin-right: 6px;
+            color: var(--verde-cepead);
+        }
+        .card-descripcion {
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .btn-ver {
+            background: var(--verde-cepead);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+        .btn-ver:hover {
+            background: #0f5e2e;
+            transform: scale(1.02);
+        }
+        
+        .badge-leido {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--verde-cepead);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 25px;
+            font-size: 11px;
+            font-weight: bold;
+            z-index: 10;
+        }
+        
+        .leyenda-colores {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0 30px;
+            flex-wrap: wrap;
+        }
+        .leyenda-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .leyenda-color {
+            width: 25px;
+            height: 25px;
+            border-radius: 8px;
+        }
+        .leyenda-color.verde { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .leyenda-color.azul { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .leyenda-color.morado { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        
+        .loading-tareas {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+        .loading-tareas i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            background: #0e1e38;
+            color: #ccc;
+            padding: 40px 0;
+            margin-top: 50px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .cards-grid { grid-template-columns: 1fr; }
+            .filtros { flex-direction: column; align-items: stretch; }
+            .filtros select { width: 100%; }
+            .card-header h3 { font-size: 1.2rem; }
+            .leyenda-colores { gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="container top-flex">
+            <div class="contacto-info">
+                <i class="fas fa-phone-alt"></i> <a href="tel:73573751">73573751</a> |
+                <i class="fas fa-envelope"></i> <a href="mailto:ing.rodrigo.laquiz@gmail.com">ing.rodrigo.laquiz@gmail.com</a>
+            </div>
+            <div class="user-area">
+                <a href="#"><i class="fab fa-tiktok"></i> @inge_rodrigo1</a>
+                <a href="index.html"><i class="fas fa-book"></i> Cursos</a>
+            </div>
+        </div>
+    </div>
+    <div class="main-header">
+        <div class="container header-flex">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-tasks"></i></div>
+                <div><h1>Tareas</h1></div>
+            </div>
+            <a href="index.html" class="btn-volver"><i class="fas fa-arrow-left"></i> Volver a Cursos</a>
+        </div>
+    </div>
+    <div class="nav-menu">
+        <div class="container">
+            <ul class="nav-links">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="#">Tareas</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="leyenda-colores">
+            <div class="leyenda-item">
+                <div class="leyenda-color verde"></div>
+                <span>🎓 1ro Año</span>
+            </div>
+            <div class="leyenda-item">
+                <div class="leyenda-color azul"></div>
+                <span>📘 2do Año</span>
+            </div>
+            <div class="leyenda-item">
+                <div class="leyenda-color morado"></div>
+                <span>📗 3ro Año</span>
+            </div>
+        </div>
+        
+        <div class="filtros">
+            <label><i class="fas fa-filter"></i> Filtrar por:</label>
+            <select id="filtroMateria" onchange="aplicarFiltros()">
+                <option value="todas">📚 Todas las materias</option>
+            </select>
+            <select id="filtroAnio" onchange="aplicarFiltros()">
+                <option value="todos">📅 Todos los años</option>
+                <option value="1ro">🎓 1ro</option>
+                <option value="2do">📘 2do</option>
+                <option value="3ro">📗 3ro</option>
+            </select>
+            <button onclick="limpiarFiltros()" class="btn-limpiar"><i class="fas fa-undo"></i> Limpiar filtros</button>
+        </div>
+        
+        <h2 class="section-title"><i class="fas fa-star"></i> Tareas Disponibles</h2>
+        <div id="loadingTareas" class="loading-tareas">
+            <i class="fas fa-spinner fa-spin"></i><br>
+            Cargando tareas desde la nube...
+        </div>
+        <div id="tareasContainer" class="cards-grid"></div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>© 2026 | <strong>Inge Rodrigo</strong> - Transformando la educación</p>
+        </div>
+    </footer>
+    
+    <script>
+        // 🔥 CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQu6SNn9D3rIicU21R8Y2t0y3FavR20Zg",
+            authDomain: "proyectoro-82929.firebaseapp.com",
+            projectId: "proyectoro-82929",
+            storageBucket: "proyectoro-82929.firebasestorage.app",
+            messagingSenderId: "1087071310579",
+            appId: "1:1087071310579:web:6765ed8a5eded8370f1d86"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ✅ CORREGIDO: Ahora usa 'practicas' que es donde guarda el admin
+        const tareasRef = database.ref('practicas');
+
+        let tareas = [];
+        let tareasLeidas = JSON.parse(localStorage.getItem('tareasLeidas') || '{}');
+        let filtroMateriaActual = 'todas';
+        let filtroAnioActual = 'todos';
+        
+        function getClaseAnio(anio) {
+            switch(anio) {
+                case '1ro': return 'anio-1ro';
+                case '2do': return 'anio-2do';
+                case '3ro': return 'anio-3ro';
+                default: return 'anio-2do';
+            }
+        }
+        
+        function irADetalle(id) {
+            window.location.href = 'tarea.html?id=' + id;
+        }
+        
+        function actualizarFiltroMaterias() {
+            const materias = [...new Set(tareas.map(p => p.materia).filter(m => m && m !== ''))];
+            const select = document.getElementById('filtroMateria');
+            select.innerHTML = '<option value="todas">📚 Todas las materias</option>';
+            materias.forEach(m => {
+                select.innerHTML += `<option value="${m}">📖 ${m}</option>`;
+            });
+        }
+        
+        function aplicarFiltros() {
+            filtroMateriaActual = document.getElementById('filtroMateria').value;
+            filtroAnioActual = document.getElementById('filtroAnio').value;
+            mostrarTareas();
+        }
+        
+        function limpiarFiltros() {
+            document.getElementById('filtroMateria').value = 'todas';
+            document.getElementById('filtroAnio').value = 'todos';
+            filtroMateriaActual = 'todas';
+            filtroAnioActual = 'todos';
+            mostrarTareas();
+        }
+        
+        function cargarTareas() {
+            const loading = document.getElementById('loadingTareas');
+            const container = document.getElementById('tareasContainer');
+            
+            loading.style.display = 'block';
+            container.innerHTML = '';
+
+            tareasRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                tareas = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        tareas.push({
+                            id: parseInt(key),
+                            ...data[key]
+                        });
+                    });
+                    tareas.sort((a, b) => a.id - b.id);
+                }
+                loading.style.display = 'none';
+                actualizarFiltroMaterias();
+                mostrarTareas();
+            });
+        }
+        
+        function mostrarTareas() {
+            const container = document.getElementById('tareasContainer');
+            
+            let filtradas = [...tareas];
+            if (filtroMateriaActual !== 'todas') {
+                filtradas = filtradas.filter(p => p.materia === filtroMateriaActual);
+            }
+            if (filtroAnioActual !== 'todos') {
+                filtradas = filtradas.filter(p => p.anio === filtroAnioActual);
+            }
+            
+            if (filtradas.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:60px;">📚 No hay tareas con estos filtros</div>';
+                return;
+            }
+            
+            container.innerHTML = filtradas.map(p => {
+                const badgeAcceso = p.tipoAcceso === 'libre' 
+                    ? '<span class="info-badge badge-acceso"><i class="fas fa-unlock-alt"></i> Libre</span>'
+                    : '<span class="info-badge badge-acceso-protegido"><i class="fas fa-lock"></i> Protegido</span>';
+                
+                return `
+                <div class="card-tarea ${getClaseAnio(p.anio)}" onclick="irADetalle(${p.id})">
+                    ${tareasLeidas[p.id] ? '<div class="badge-leido"><i class="fas fa-check-circle"></i> Leído</div>' : ''}
+                    <div class="card-header">
+                        <h3>${escapeHtml(p.titulo)}</h3>
+                        <div>
+                            <span class="info-badge badge-materia"><i class="fas fa-book"></i> ${escapeHtml(p.materia || 'Materia')}</span>
+                            <span class="info-badge badge-anio"><i class="fas fa-calendar"></i> ${p.anio || 'Año'} Año</span>
+                            ${badgeAcceso}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-meta">
+                            <span><i class="fas fa-graduation-cap"></i> ${escapeHtml(p.carrera || 'Carrera')}</span>
+                            <span><i class="fas fa-file-alt"></i> ${p.archivos?.length || 0} archivo(s)</span>
+                            ${p.fechaLimite ? `<span><i class="fas fa-hourglass-half"></i> Límite: ${p.fechaLimite}</span>` : ''}
+                        </div>
+                        <div class="card-descripcion">${escapeHtml((p.descripcion || 'Sin descripción').substring(0, 140))}${(p.descripcion?.length || 0) > 140 ? '...' : ''}</div>
+                        <button class="btn-ver" onclick="event.stopPropagation(); irADetalle(${p.id})">
+                            <i class="fas fa-eye"></i> Ver Tarea
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        cargarTareas();
+    </script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Inge Rodrigo | Detalle del Curso</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- 🔥 FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f2f5; }
+        :root {
+            --azul-gob: #0a2b5e;
+            --verde-cepead: #1c7e3c;
+            --amarillo: #f9b81b;
+            --naranja: #f39c12;
+            --sombra: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .top-bar { background: var(--azul-gob); color: white; padding: 8px 0; font-size: 12px; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+        .top-flex { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .contacto-info a, .user-area a { color: white; text-decoration: none; }
+        .contacto-info a:hover, .user-area a:hover { color: var(--amarillo); }
+        .user-area { display: flex; gap: 15px; flex-wrap: wrap; }
+        .user-area a { font-size: 12px; transition: 0.3s; }
+        
+        .main-header { background: white; box-shadow: var(--sombra); padding: 15px 0; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { background: var(--verde-cepead); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+        .logo-area h1 { font-size: 1.4rem; color: var(--azul-gob); }
+        .logo-area span { font-size: 0.7rem; color: #5e6f8d; display: block; }
+        .btn-volver { background: var(--azul-gob); color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        
+        .curso-detalle { background: white; border-radius: 25px; overflow: hidden; margin: 30px 0; box-shadow: var(--sombra); }
+        .curso-banner { width: 100%; height: 350px; background-size: cover; background-position: center; position: relative; }
+        .curso-banner-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 40px; color: white; }
+        .curso-banner-overlay h1 { font-size: 2rem; margin-bottom: 10px; }
+        .curso-info { padding: 40px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .info-card { background: #f8f9fc; padding: 20px; border-radius: 15px; text-align: center; }
+        .info-card i { font-size: 2rem; color: var(--verde-cepead); margin-bottom: 10px; }
+        .info-card h3 { font-size: 0.9rem; color: #666; }
+        .info-card p { font-size: 1.2rem; font-weight: bold; color: var(--azul-gob); }
+        .descripcion-curso { margin-bottom: 30px; }
+        .descripcion-curso h2 { color: var(--azul-gob); margin-bottom: 15px; }
+        .descripcion-curso p { line-height: 1.6; color: #444; }
+        
+        .recursos-section { margin: 30px 0; }
+        .recursos-section h2 { color: var(--azul-gob); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid var(--verde-cepead); display: inline-block; }
+        .video-card { background: #f8f9fc; border-radius: 15px; margin-bottom: 15px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+        .video-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .video-imagen { width: 100%; height: 200px; background-size: cover; background-position: center; position: relative; }
+        .video-play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; background: rgba(0,0,0,0.7); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .video-card:hover .video-play-icon { background: rgba(255,0,0,0.8); transform: translate(-50%, -50%) scale(1.1); }
+        .video-play-icon i { font-size: 1.8rem; color: white; }
+        .video-info { padding: 15px; background: white; }
+        .video-info h3 { color: var(--azul-gob); margin-bottom: 5px; font-size: 1.1rem; }
+        
+        .archivo-card { background: white; border-radius: 12px; margin-bottom: 12px; border: 1px solid #e0e0e0; transition: all 0.3s; }
+        .archivo-card:hover { border-color: var(--verde-cepead); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .archivo-contenido { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; flex-wrap: wrap; gap: 15px; }
+        .archivo-info { display: flex; align-items: center; gap: 15px; flex: 1; }
+        .archivo-icon { font-size: 2rem; min-width: 50px; text-align: center; }
+        .archivo-texto h3 { font-size: 1rem; color: var(--azul-gob); margin-bottom: 3px; }
+        .archivo-texto p { font-size: 0.75rem; color: #888; }
+        .archivo-botones { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-archivo { border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s; font-weight: 500; }
+        .btn-archivo-ver { background: var(--verde-cepead); color: white; }
+        .btn-archivo-ver:hover { background: #0f5e2e; transform: scale(1.02); }
+        .btn-archivo-descargar { background: var(--azul-gob); color: white; }
+        .btn-archivo-descargar:hover { background: #062045; transform: scale(1.02); }
+        
+        .btn-inscribirse { background: var(--verde-cepead); color: white; padding: 15px 40px; border: none; border-radius: 50px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: 0.3s; margin-top: 20px; }
+        .btn-inscribirse:hover { background: #0f5e2e; transform: scale(1.02); }
+        
+        .loading-curso { text-align: center; padding: 60px; color: #666; }
+        .loading-curso i { font-size: 2rem; margin-bottom: 15px; }
+        
+        footer { background: #0e1e38; color: #ccc; padding: 40px 0 20px; margin-top: 50px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 35px; margin-bottom: 30px; }
+        .footer-col h4 { color: white; margin-bottom: 15px; font-size: 1.1rem; }
+        .footer-col ul { list-style: none; }
+        .footer-col li, .footer-col p { margin-bottom: 8px; font-size: 0.85rem; }
+        .footer-col a { color: #bbb; text-decoration: none; transition: 0.3s; }
+        .footer-col a:hover { color: var(--amarillo); }
+        .social-links { display: flex; gap: 15px; margin-top: 10px; }
+        .social-links a { font-size: 1.2rem; }
+        .copyright { text-align: center; padding-top: 25px; border-top: 1px solid #2a3b55; font-size: 0.75rem; }
+        
+        @media (max-width: 768px) {
+            .curso-banner { height: 200px; }
+            .curso-banner-overlay h1 { font-size: 1.3rem; }
+            .curso-info { padding: 20px; }
+            .video-imagen { height: 150px; }
+            .video-play-icon { width: 45px; height: 45px; }
+            .video-play-icon i { font-size: 1.3rem; }
+            .archivo-contenido { flex-direction: column; align-items: flex-start; }
+            .archivo-botones { width: 100%; justify-content: flex-start; }
+            .btn-archivo { flex: 1; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="container top-flex">
+            <div class="contacto-info">
+                <i class="fas fa-phone-alt"></i> <a href="tel:73573751">73573751</a> &nbsp;|&nbsp;
+                <i class="fas fa-envelope"></i> <a href="mailto:ing.rodrigo.laquiz@gmail.com">ing.rodrigo.laquiz@gmail.com</a>
+            </div>
+            <div class="user-area">
+                <a href="#"><i class="fas fa-user-graduate"></i> Estudiantes</a>
+                <a href="#"><i class="fab fa-tiktok"></i> @inge_rodrigo1</a>
+            </div>
+        </div>
+    </div>
+    <div class="main-header">
+        <div class="container header-flex">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-chalkboard-user"></i></div>
+                <div>
+                    <h1>Inge Rodrigo</h1>
+                    <span>Educación a Distancia - Bolivia</span>
+                </div>
+            </div>
+            <a href="index.html" class="btn-volver"><i class="fas fa-arrow-left"></i> Volver a cursos</a>
+        </div>
+    </div>
+    <div class="container" id="cursoContent">
+        <div class="loading-curso">
+            <i class="fas fa-spinner fa-spin"></i><br>
+            Cargando información del curso...
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4><i class="fas fa-chalkboard-user"></i> Inge Rodrigo</h4>
+                    <p>Educación a Distancia - Bolivia</p>
+                    <p><strong style="color: var(--amarillo);">🌟 Docente comprometido con tu aprendizaje</strong></p>
+                </div>
+                <div class="footer-col">
+                    <h4>Enlaces</h4>
+                    <ul>
+                        <li><a href="#">Aula Virtual</a></li>
+                        <li><a href="#">Sistema de notas</a></li>
+                        <li><a href="#">Biblioteca digital</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contacto</h4>
+                    <ul>
+                        <li><i class="fas fa-phone"></i> <a href="tel:73573751">73573751</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:ing.rodrigo.laquiz@gmail.com">ing.rodrigo.laquiz@gmail.com</a></li>
+                        <li><i class="fab fa-tiktok"></i> <a href="https://www.tiktok.com/@inge_rodrigo1" target="_blank">@inge_rodrigo1</a></li>
+                    </ul>
+                    <div class="social-links">
+                        <a href="https://www.tiktok.com/@inge_rodrigo1" target="_blank"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>© 2026 | <strong>Inge Rodrigo</strong> - Transformando la educación con pasión y dedicación</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 🔥 CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQu6SNn9D3rIicU21R8Y2t0y3FavR20Zg",
+            authDomain: "proyectoro-82929.firebaseapp.com",
+            projectId: "proyectoro-82929",
+            storageBucket: "proyectoro-82929.firebasestorage.app",
+            messagingSenderId: "1087071310579",
+            appId: "1:1087071310579:web:6765ed8a5eded8370f1d86"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const cursosRef = database.ref('cursos');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const cursoId = parseInt(urlParams.get('id'));
+
+        function normalizarYouTubeUrl(url) {
+            if (!url) return null;
+            if (url.includes('youtu.be/')) {
+                const id = url.split('youtu.be/')[1].split('?')[0];
+                return `https://www.youtube.com/watch?v=${id}`;
+            } else if (url.includes('youtube.com/watch')) {
+                return url;
+            } else if (url.includes('youtube.com/embed/')) {
+                const id = url.split('/embed/')[1].split('?')[0];
+                return `https://www.youtube.com/watch?v=${id}`;
+            } else if (!url.includes('http')) {
+                return `https://www.youtube.com/watch?v=${url}`;
+            }
+            return url;
+        }
+
+        function obtenerImagenYouTube(url) {
+            if (!url) return null;
+            let id = null;
+            if (url.includes('youtu.be/')) {
+                id = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('youtube.com/watch')) {
+                id = url.split('v=')[1]?.split('&')[0];
+            } else if (url.includes('youtube.com/embed/')) {
+                id = url.split('/embed/')[1].split('?')[0];
+            } else if (!url.includes('http')) {
+                id = url;
+            }
+            if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+            return null;
+        }
+
+        function getIconoArchivo(tipo) {
+            const iconos = {
+                word: '<i class="fas fa-file-word" style="color: #2b579a;"></i>',
+                excel: '<i class="fas fa-file-excel" style="color: #1e7145;"></i>',
+                powerpoint: '<i class="fas fa-file-powerpoint" style="color: #d35230;"></i>',
+                pdf: '<i class="fas fa-file-pdf" style="color: #e74c3c;"></i>',
+                otro: '<i class="fas fa-file" style="color: #666;"></i>'
+            };
+            return iconos[tipo] || iconos.otro;
+        }
+
+        function getTextoArchivo(tipo) {
+            const textos = {
+                word: 'Documento de Word',
+                excel: 'Hoja de cálculo Excel',
+                powerpoint: 'Presentación PowerPoint',
+                pdf: 'Documento PDF',
+                otro: 'Archivo'
+            };
+            return textos[tipo] || textos.otro;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        if (!cursoId || isNaN(cursoId)) {
+            document.getElementById('cursoContent').innerHTML = `
+                <div style="text-align:center; padding:80px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size:4rem; color:#e74c3c;"></i>
+                    <h2>Curso no especificado</h2>
+                    <a href="index.html" class="btn-volver" style="margin-top:20px; display:inline-block;">← Volver a cursos</a>
+                </div>
+            `;
+        } else {
+            cursosRef.child(cursoId.toString()).once('value', (snapshot) => {
+                const data = snapshot.val();
+                const container = document.getElementById('cursoContent');
+                
+                if (!data) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:80px;">
+                            <i class="fas fa-search" style="font-size:4rem; color:#e74c3c;"></i>
+                            <h2>Curso no encontrado</h2>
+                            <a href="index.html" class="btn-volver" style="margin-top:20px; display:inline-block;">← Volver a cursos</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const categoriaNombre = {
+                    'educacion': '🎓 Educación',
+                    'tecnologia': '💻 Tecnología',
+                    'idiomas': '🗣️ Idiomas'
+                };
+
+                // Videos
+                let videosHTML = '';
+                if (data.videos && data.videos.length > 0) {
+                    videosHTML = `<div class="recursos-section"><h2><i class="fab fa-youtube"></i> Videos del curso (${data.videos.length})</h2>`;
+                    data.videos.forEach(video => {
+                        const youtubeUrl = normalizarYouTubeUrl(video.url);
+                        const imagenPortada = video.imagen || obtenerImagenYouTube(video.url) || 'https://via.placeholder.com/600x340';
+                        videosHTML += `
+                            <a href="${youtubeUrl}" target="_blank" class="video-card">
+                                <div class="video-imagen" style="background-image: url('${imagenPortada}');">
+                                    <div class="video-play-icon">
+                                        <i class="fab fa-youtube"></i>
+                                    </div>
+                                </div>
+                                <div class="video-info">
+                                    <h3>${escapeHtml(video.titulo)}</h3>
+                                    <p>Haz clic para ver en YouTube</p>
+                                </div>
+                            </a>
+                        `;
+                    });
+                    videosHTML += `</div>`;
+                }
+
+                // Archivos
+                let archivosHTML = '';
+                if (data.archivos && data.archivos.length > 0) {
+                    archivosHTML = `<div class="recursos-section"><h2><i class="fas fa-download"></i> Materiales descargables (${data.archivos.length})</h2>`;
+                    data.archivos.forEach(archivo => {
+                        archivosHTML += `
+                            <div class="archivo-card">
+                                <div class="archivo-contenido">
+                                    <div class="archivo-info">
+                                        <div class="archivo-icon">${getIconoArchivo(archivo.tipo)}</div>
+                                        <div class="archivo-texto">
+                                            <h3>${escapeHtml(archivo.titulo)}</h3>
+                                            <p>${getTextoArchivo(archivo.tipo)}</p>
+                                        </div>
+                                    </div>
+                                    <div class="archivo-botones">
+                                        <button class="btn-archivo btn-archivo-ver" onclick="window.open('${archivo.url}', '_blank')">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </button>
+                                        <button class="btn-archivo btn-archivo-descargar" onclick="window.open('${archivo.url}', '_blank')">
+                                            <i class="fas fa-download"></i> Descargar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    archivosHTML += `</div>`;
+                }
+
+                container.innerHTML = `
+                    <div class="curso-detalle">
+                        <div class="curso-banner" style="background-image: url('${data.imagen || 'https://via.placeholder.com/1200x400'}');">
+                            <div class="curso-banner-overlay">
+                                <h1>${escapeHtml(data.titulo)}</h1>
+                                <p>${categoriaNombre[data.categoria] || data.categoria}</p>
+                            </div>
+                        </div>
+                        <div class="curso-info">
+                            <div class="info-grid">
+                                <div class="info-card"><i class="fas fa-clock"></i><h3>Duración</h3><p>${escapeHtml(data.duracion || 'N/A')}</p></div>
+                                <div class="info-card"><i class="fas fa-signal"></i><h3>Nivel</h3><p>${escapeHtml(data.nivel || 'Básico')}</p></div>
+                                <div class="info-card"><i class="fas fa-users"></i><h3>Estudiantes</h3><p>${data.estudiantes || 0}+</p></div>
+                                <div class="info-card"><i class="fas fa-certificate"></i><h3>Certificación</h3><p>Oficial</p></div>
+                            </div>
+                            <div class="descripcion-curso">
+                                <h2><i class="fas fa-info-circle"></i> Descripción</h2>
+                                <p>${escapeHtml(data.descripcion || 'Sin descripción disponible.')}</p>
+                            </div>
+                            ${videosHTML}
+                            ${archivosHTML}
+                            <div style="text-align: center;">
+                                <button class="btn-inscribirse" onclick="alert('✅ Inscripción exitosa al curso: ${escapeHtml(data.titulo)}\\n\\nRecibirás un correo con los detalles de acceso.')">
+                                    <i class="fas fa-graduation-cap"></i> Inscribirme ahora
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

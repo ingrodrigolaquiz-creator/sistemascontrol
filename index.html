@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Inge Rodrigo | Plataforma Educativa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- 🔥 FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #f0f2f5;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+        :root {
+            --azul-gob: #0a2b5e;
+            --verde-cepead: #1c7e3c;
+            --amarillo: #f9b81b;
+            --morado: #9b59b6;
+            --naranja: #f39c12;
+            --sombra: 0 8px 20px rgba(0,0,0,0.05);
+            --azul-claro: #1e4d8f;
+        }
+        .top-bar { background: var(--azul-gob); color: white; padding: 8px 0; font-size: 12px; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 16px; }
+        .top-flex { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .contacto-info a, .user-area a { color: white; text-decoration: none; }
+        .contacto-info a:hover, .user-area a:hover { color: var(--amarillo); }
+        .user-area { display: flex; gap: 12px; flex-wrap: wrap; }
+        .user-area a { font-size: 11px; transition: 0.3s; }
+        .main-header { background: white; box-shadow: var(--sombra); padding: 20px 0; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo-icon { background: linear-gradient(135deg, var(--morado), #8e44ad); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; box-shadow: 0 5px 15px rgba(155, 89, 182, 0.3); }
+        .logo-texto h1 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, var(--azul-gob), var(--morado), #8e44ad); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: 2px; }
+        .logo-texto span { font-size: 0.7rem; color: #5e6f8d; display: block; font-weight: 500; }
+        .docente-frase { font-family: 'Playfair Display', serif; font-style: italic; color: var(--morado); font-size: 0.85rem; background: #f8f0ff; padding: 8px 15px; border-radius: 30px; }
+        .nav-menu { background: linear-gradient(135deg, var(--azul-gob), var(--azul-claro)); position: relative; }
+        .menu-toggle { display: none; background: transparent; color: white; border: none; padding: 14px 20px; font-size: 1.3rem; cursor: pointer; width: 100%; text-align: left; font-weight: bold; }
+        .nav-links { list-style: none; display: flex; flex-wrap: wrap; margin: 0; padding: 0; }
+        .nav-links > li > a { display: block; padding: 14px 22px; color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: 0.3s; border-right: 1px solid rgba(255,255,255,0.15); cursor: pointer; }
+        .nav-links > li > a i { margin-right: 8px; }
+        .nav-links > li > a:hover { background: var(--verde-cepead); }
+        .slider-container { position: relative; width: 100%; height: 85vh; max-height: 550px; min-height: 400px; overflow: hidden; }
+        .slider { display: flex; width: 100%; height: 100%; transition: transform 0.5s ease-in-out; }
+        .slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; position: relative; }
+        .slide::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); }
+        .slide-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white; width: 90%; max-width: 700px; z-index: 2; }
+        .slide-content .hero-badge { background: var(--amarillo); color: var(--azul-gob); padding: 6px 14px; border-radius: 30px; display: inline-block; font-weight: bold; font-size: 0.8rem; margin-bottom: 15px; }
+        .slide-content h2 { font-size: 1.8rem; margin-bottom: 12px; font-family: 'Playfair Display', serif; font-weight: 700; }
+        .slide-content p { font-size: 1rem; margin-bottom: 20px; }
+        .btn-slider { background: var(--verde-cepead); color: white; padding: 10px 22px; border-radius: 40px; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
+        .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; font-size: 24px; cursor: pointer; padding: 8px 14px; border-radius: 50%; z-index: 3; }
+        .prev { left: 10px; }
+        .next { right: 10px; }
+        .dots { position: absolute; bottom: 15px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; z-index: 3; }
+        .dot { width: 10px; height: 10px; background: rgba(255,255,255,0.5); border-radius: 50%; cursor: pointer; }
+        .dot.active { background: var(--amarillo); transform: scale(1.2); }
+        .filtros-cursos { background: white; padding: 20px; border-radius: 20px; margin: 30px 0; box-shadow: var(--sombra); }
+        .buscador { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .buscador input { flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 30px; font-size: 1rem; }
+        .buscador button { background: var(--verde-cepead); color: white; border: none; padding: 0 25px; border-radius: 30px; cursor: pointer; }
+        .filtros-botones { display: flex; gap: 12px; flex-wrap: wrap; }
+        .filtro-btn { padding: 8px 20px; background: #f0f2f5; border: none; border-radius: 30px; cursor: pointer; transition: 0.3s; font-weight: 500; }
+        .filtro-btn.active, .filtro-btn:hover { background: var(--verde-cepead); color: white; }
+        .section-title { text-align: center; margin: 35px 0 25px; font-size: 1.8rem; color: var(--azul-gob); font-family: 'Playfair Display', serif; font-weight: 700; }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .card-curso { background: white; border-radius: 18px; overflow: hidden; box-shadow: var(--sombra); transition: transform 0.3s ease; cursor: pointer; }
+        .card-curso:hover { transform: translateY(-5px); }
+        .card-img { width: 100%; height: 200px; background-size: cover; background-position: center; position: relative; }
+        .badge-curso { position: absolute; top: 10px; right: 10px; background: var(--amarillo); color: var(--azul-gob); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .badge-certificacion { position: absolute; top: 10px; left: 10px; background: var(--verde-cepead); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; }
+        .card-img-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 15px; }
+        .card-img-overlay h3 { color: white; font-size: 1.2rem; font-weight: 600; }
+        .card-info { padding: 18px; }
+        .curso-meta { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.8rem; color: #666; flex-wrap: wrap; gap: 8px; }
+        .curso-meta i { margin-right: 4px; color: var(--verde-cepead); }
+        .estrellas { color: var(--naranja); margin-bottom: 10px; }
+        .btn-ver-curso { background: var(--verde-cepead); color: white; border: none; padding: 10px; border-radius: 30px; font-weight: bold; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
+        .btn-ver-curso:hover { background: #0f5e2e; }
+        .app-banner { background: linear-gradient(135deg, var(--morado), #6c3483); color: white; padding: 20px; border-radius: 20px; margin: 20px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .btn-app { background: white; color: var(--morado); padding: 10px 20px; border-radius: 40px; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
+        .loading-cursos { text-align: center; padding: 60px; color: #666; }
+        .loading-cursos i { font-size: 2rem; margin-bottom: 15px; }
+        footer { background: #0e1e38; color: #ccc; padding: 45px 0 25px; margin-top: 55px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 35px; margin-bottom: 30px; }
+        .footer-col h4 { color: white; margin-bottom: 15px; font-size: 1.1rem; font-weight: 600; }
+        .footer-col ul { list-style: none; }
+        .footer-col li, .footer-col p { margin-bottom: 8px; font-size: 0.85rem; }
+        .footer-col a { color: #bbb; text-decoration: none; transition: 0.3s; }
+        .footer-col a:hover { color: var(--amarillo); }
+        .social-links { display: flex; gap: 15px; margin-top: 10px; }
+        .social-links a { font-size: 1.2rem; }
+        .copyright { text-align: center; padding-top: 25px; border-top: 1px solid #2a3b55; font-size: 0.75rem; }
+        .btn-whatsapp { position: fixed; bottom: 30px; right: 30px; background: #25D366; color: white; border-radius: 50px; padding: 12px 20px; display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 600; font-size: 14px; box-shadow: 0 5px 20px rgba(37, 211, 102, 0.4); z-index: 1000; }
+        .btn-whatsapp i { font-size: 28px; }
+        .btn-whatsapp-text { font-size: 12px; line-height: 1.3; text-align: left; }
+        .btn-whatsapp:hover { transform: scale(1.05); background: #128C7E; }
+        html { scroll-behavior: smooth; }
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            .nav-links { display: none; flex-direction: column; width: 100%; }
+            .nav-links.show { display: flex; }
+            .nav-links > li > a { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+            .slider-container { height: 70vh; }
+            .slide-content h2 { font-size: 1.4rem; }
+            .header-flex { flex-direction: column; text-align: center; justify-content: center; }
+            .logo-area { flex-direction: column; text-align: center; }
+            .logo-texto h1 { font-size: 2rem; }
+            .btn-whatsapp { bottom: 20px; right: 20px; padding: 10px 15px; }
+            .btn-whatsapp i { font-size: 24px; }
+            .btn-whatsapp-text { font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="container top-flex">
+            <div class="contacto-info">
+                <i class="fas fa-phone-alt"></i> <a href="tel:73573751">73573751</a> &nbsp;|&nbsp;
+                <i class="fas fa-envelope"></i> <a href="mailto:ing.rodrigo.laquiz@gmail.com">ing.rodrigo.laquiz@gmail.com</a>
+            </div>
+            <div class="user-area">
+                <a href="#"><i class="fas fa-user-graduate"></i> Estudiantes</a>
+                <a href="#"><i class="fab fa-tiktok"></i> @inge_rodrigo1</a>
+            </div>
+        </div>
+    </div>
+    <div class="main-header">
+        <div class="container header-flex">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-chalkboard-user"></i></div>
+                <div class="logo-texto">
+                    <h1>Inge Rodrigo</h1>
+                    <span>Educación a Distancia - Bolivia</span>
+                </div>
+            </div>
+            <div class="docente-frase">
+                <i class="fas fa-quote-left"></i> Transformando la educación con pasión y dedicación <i class="fas fa-quote-right"></i>
+            </div>
+        </div>
+    </div>
+    <div class="nav-menu">
+        <div class="container" style="padding:0">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i> Menú</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a href="#cursos-destacados"><i class="fas fa-book-open"></i> Cursos</a></li>
+                <li><a href="tareas.html"><i class="fas fa-laptop-code"></i> Prácticas</a></li>
+                <li><a href="#"><i class="fas fa-puzzle-piece"></i> Temas Adicionales</a></li>
+                <li><a href="#"><i class="fas fa-plus-circle"></i> Extras</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="slider-container">
+        <div class="slider" id="slider">
+            <div class="slide" style="background-image: url('https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1');">
+                <div class="slide-content">
+                    <div class="hero-badge"><i class="fas fa-globe-americas"></i> Educación sin límites</div>
+                    <h2>Formación a distancia <br>de calidad y gratuita</h2>
+                    <p>Accede a cientos de cursos respaldados por el Ministerio de Educación.</p>
+                    <a href="#cursos-destacados" class="btn-slider"><i class="fas fa-play-circle"></i> Ver cursos</a>
+                </div>
+            </div>
+            <div class="slide" style="background-image: url('https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=1200&h=600&dpr=1');">
+                <div class="slide-content">
+                    <div class="hero-badge"><i class="fas fa-chalkboard-user"></i> Certificación oficial</div>
+                    <h2>Actualización profesional <br>con validez ministerial</h2>
+                    <p>Cursos con certificación y acceso 24/7.</p>
+                    <a href="#cursos-destacados" class="btn-slider"><i class="fas fa-certificate"></i> Ver cursos</a>
+                </div>
+            </div>
+        </div>
+        <button class="slider-btn prev" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
+        <button class="slider-btn next" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
+        <div class="dots" id="dotsContainer"></div>
+    </div>
+    <div class="container">
+        <div class="app-banner">
+            <div><i class="fas fa-mobile-alt" style="font-size: 2rem;"></i> <strong>¡Consulta tus notas desde la App!</strong> Disponible para Android y iOS.</div>
+            <a href="#" class="btn-app"><i class="fab fa-android"></i> Descargar</a>
+        </div>
+        <div class="filtros-cursos" id="cursos-destacados">
+            <div class="buscador">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar curso...">
+                <button onclick="filtrarCursos()"><i class="fas fa-search"></i> Buscar</button>
+            </div>
+            <div class="filtros-botones">
+                <button class="filtro-btn active" data-categoria="todos">📚 Todos</button>
+                <button class="filtro-btn" data-categoria="educacion">🎓 Educación</button>
+                <button class="filtro-btn" data-categoria="tecnologia">💻 Tecnología</button>
+                <button class="filtro-btn" data-categoria="idiomas">🗣️ Idiomas</button>
+            </div>
+        </div>
+        <h2 class="section-title"><i class="fas fa-star"></i> Cursos Destacados</h2>
+        <div id="loadingCursos" class="loading-cursos">
+            <i class="fas fa-spinner fa-spin"></i><br>
+            Cargando cursos desde la nube...
+        </div>
+        <div class="cards-grid" id="cursosContainer"></div>
+    </div>
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4><i class="fas fa-chalkboard-user"></i> Inge Rodrigo</h4>
+                    <p>Educación a Distancia - Bolivia</p>
+                    <p><strong style="color: var(--amarillo);">🌟 Docente comprometido con tu aprendizaje</strong></p>
+                </div>
+                <div class="footer-col">
+                    <h4>Enlaces</h4>
+                    <ul>
+                        <li><a href="#">Aula Virtual</a></li>
+                        <li><a href="#">Sistema de notas</a></li>
+                        <li><a href="#">Biblioteca digital</a></li>
+                        <li><a href="#">Preguntas frecuentes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contacto</h4>
+                    <ul>
+                        <li><i class="fas fa-phone"></i> <a href="tel:73573751">73573751</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:ing.rodrigo.laquiz@gmail.com">ing.rodrigo.laquiz@gmail.com</a></li>
+                        <li><i class="fab fa-tiktok"></i> <a href="https://www.tiktok.com/@inge_rodrigo1" target="_blank">@inge_rodrigo1</a></li>
+                    </ul>
+                    <div class="social-links">
+                        <a href="https://www.tiktok.com/@inge_rodrigo1" target="_blank"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>© 2026 | <strong>Inge Rodrigo</strong> - Transformando la educación con pasión y dedicación</p>
+            </div>
+        </div>
+    </footer>
+    <a href="https://wa.me/59173573751?text=Hola%20Inge%20Rodrigo,%20necesito%20ayuda%20con%20los%20cursos" class="btn-whatsapp" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+        <span class="btn-whatsapp-text">¿Necesitas ayuda?<br>Chatea conmigo</span>
+    </a>
+
+    <script>
+        // 🔥 CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQu6SNn9D3rIicU21R8Y2t0y3FavR20Zg",
+            authDomain: "proyectoro-82929.firebaseapp.com",
+            projectId: "proyectoro-82929",
+            storageBucket: "proyectoro-82929.firebasestorage.app",
+            messagingSenderId: "1087071310579",
+            appId: "1:1087071310579:web:6765ed8a5eded8370f1d86"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const cursosRef = database.ref('cursos');
+
+        let cursos = [];
+
+        function irAlCurso(id) {
+            window.location.href = 'curso.html?id=' + id;
+        }
+
+        function cargarCursosDesdeFirebase() {
+            const loading = document.getElementById('loadingCursos');
+            const container = document.getElementById('cursosContainer');
+            
+            loading.style.display = 'block';
+            container.innerHTML = '';
+
+            cursosRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                cursos = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        cursos.push({
+                            id: parseInt(key),
+                            ...data[key]
+                        });
+                    });
+                    cursos.sort((a, b) => a.id - b.id);
+                }
+                loading.style.display = 'none';
+                mostrarCursos();
+            });
+        }
+
+        function mostrarCursos() {
+            const container = document.getElementById('cursosContainer');
+            const searchText = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const categoriaActiva = document.querySelector('.filtro-btn.active')?.dataset.categoria || 'todos';
+            
+            const cursosFiltrados = cursos.filter(curso => {
+                const matchesSearch = curso.titulo.toLowerCase().includes(searchText) || 
+                                    (curso.descripcion && curso.descripcion.toLowerCase().includes(searchText));
+                const matchesCategory = categoriaActiva === 'todos' || curso.categoria === categoriaActiva;
+                return matchesSearch && matchesCategory;
+            });
+            
+            if (cursosFiltrados.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px;">📚 No hay cursos disponibles actualmente. Pronto agregaremos más contenido.</div>';
+                return;
+            }
+            
+            container.innerHTML = cursosFiltrados.map(curso => `
+                <div class="card-curso" onclick="irAlCurso(${curso.id})">
+                    <div class="card-img" style="background-image: url('${curso.imagen || 'https://via.placeholder.com/600x400'}');">
+                        <div class="badge-curso">🔥 Destacado</div>
+                        <div class="badge-certificacion">✅ Certificación</div>
+                        <div class="card-img-overlay"><h3>${curso.titulo}</h3></div>
+                    </div>
+                    <div class="card-info">
+                        <div class="curso-meta">
+                            <span><i class="fas fa-clock"></i> ${curso.duracion || 'N/A'}</span>
+                            <span><i class="fas fa-signal"></i> ${curso.nivel || 'Básico'}</span>
+                            <span><i class="fas fa-users"></i> ${curso.estudiantes || 0} estudiantes</span>
+                        </div>
+                        <div class="estrellas">★★★★★ (4.8)</div>
+                        <p>${(curso.descripcion || 'Sin descripción').substring(0, 100)}${(curso.descripcion || '').length > 100 ? '...' : ''}</p>
+                        <button class="btn-ver-curso" onclick="event.stopPropagation(); irAlCurso(${curso.id})">
+                            <i class="fas fa-eye"></i> VER CURSO
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filtrarCursos() { mostrarCursos(); }
+        
+        document.querySelectorAll('.filtro-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                mostrarCursos();
+            });
+        });
+        
+        document.getElementById('searchInput')?.addEventListener('keyup', filtrarCursos);
+
+        // Slider
+        const slider = document.getElementById('slider');
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const dotsContainer = document.getElementById('dotsContainer');
+        let currentIndex = 0, autoInterval;
+        
+        function createDots() {
+            if(!dotsContainer) return;
+            dotsContainer.innerHTML = '';
+            for(let i=0; i<slides.length; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+                if(i===currentIndex) dot.classList.add('active');
+                dot.addEventListener('click', () => goToSlide(i));
+                dotsContainer.appendChild(dot);
+            }
+        }
+        function updateDots() { document.querySelectorAll('.dot').forEach((d,i)=>{ i===currentIndex ? d.classList.add('active') : d.classList.remove('active'); }); }
+        function goToSlide(index) { if(index<0) index=slides.length-1; if(index>=slides.length) index=0; currentIndex=index; slider.style.transform=`translateX(-${currentIndex*100}%)`; updateDots(); resetAutoPlay(); }
+        function nextSlide() { goToSlide(currentIndex+1); }
+        function prevSlide() { goToSlide(currentIndex-1); }
+        function startAutoPlay() { autoInterval = setInterval(nextSlide, 5000); }
+        function resetAutoPlay() { clearInterval(autoInterval); startAutoPlay(); }
+        
+        if(prevBtn && nextBtn) { prevBtn.addEventListener('click',()=>{ prevSlide(); resetAutoPlay(); }); nextBtn.addEventListener('click',()=>{ nextSlide(); resetAutoPlay(); }); }
+        if(slider && slides.length) { createDots(); startAutoPlay(); }
+
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        if(menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('show');
+            });
+        }
+
+        cargarCursosDesdeFirebase();
+    </script>
+</body>
+</html>
