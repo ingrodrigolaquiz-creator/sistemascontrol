@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a365d">
+<title>Seguimiento de Solicitud — Unidad Educativa Pacallo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { overflow-x: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 50%, #faf5ff 100%);
+    min-height: 100vh;
+    color: #2d3748;
+    padding: 12px;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .contenedor { max-width: 780px; margin: 0 auto; padding-bottom: 30px; }
+
+  .hero {
+    background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+    border-radius: 18px 18px 0 0;
+    padding: 28px 20px 24px;
+    text-align: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(26,54,93,.22);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,.08) 0%, transparent 60%);
+    animation: rotar 25s linear infinite;
+  }
+  @keyframes rotar { to { transform: rotate(360deg); } }
+  .hero .logo {
+    width: 88px; height: 88px;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 50%;
+    padding: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
+    margin: 0 auto 12px;
+    display: block;
+    position: relative;
+  }
+  .hero h1 { color: #fff; font-size: 19px; margin-bottom: 4px; position: relative; line-height: 1.3; }
+  .hero p { color: #bee3f8; font-size: 13px; position: relative; }
+  .hero .titulo-sistema {
+    display: inline-block;
+    background: rgba(255,255,255,.15);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    margin-top: 10px;
+    border: 1px solid rgba(255,255,255,.25);
+    position: relative;
+  }
+
+  .card-blanco {
+    background: #fff;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 12px 32px rgba(26,54,93,.12);
+    overflow: hidden;
+  }
+
+  .form-busqueda {
+    padding: 24px 18px;
+    text-align: center;
+    border-bottom: 1px solid #edf2f7;
+  }
+  .form-busqueda label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 12px;
+  }
+  .form-busqueda .input-group {
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+  }
+  .form-busqueda input {
+    width: 100%;
+    padding: 15px 16px;
+    border: 2px solid #cbd5e0;
+    border-radius: 12px;
+    font-size: 16px;
+    text-align: center;
+    font-weight: 600;
+    color: #2c5282;
+    letter-spacing: 1px;
+    transition: all .2s;
+    background: #f7fafc;
+  }
+  .form-busqueda input:focus {
+    outline: none;
+    border-color: #4299e1;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(66,153,225,.15);
+  }
+  .form-busqueda button {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    box-shadow: 0 4px 12px rgba(44,82,130,.3);
+    letter-spacing: .5px;
+  }
+  .form-busqueda button:active { transform: scale(.98); }
+  .ayuda {
+    font-size: 12px;
+    color: #718096;
+    margin-top: 12px;
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  #resultado { padding: 0 14px 20px; }
+
+  .ficha { animation: slideUp .4s ease; margin-top: 18px; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .ficha-header {
+    background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+    color: #fff;
+    padding: 16px 18px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(44,82,130,.22);
+    margin-bottom: 14px;
+  }
+  .ficha-header .codigo { font-size: 18px; font-weight: 800; letter-spacing: .8px; }
+  .ficha-header .sub { font-size: 11px; opacity: .85; margin-top: 3px; line-height: 1.4; }
+  .estado-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(255,255,255,.22);
+    border: 1px solid rgba(255,255,255,.4);
+    white-space: nowrap;
+    align-self: flex-start;
+  }
+
+  .info-card {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 16px 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid #4299e1;
+  }
+  .info-card .titulo {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+    color: #2c5282;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .info-grid .dato { font-size: 13px; }
+  .info-grid .dato .lbl {
+    color: #718096;
+    font-size: 10px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+    letter-spacing: .5px;
+    font-weight: 600;
+  }
+  .info-grid .dato .val { color: #1a365d; font-weight: 600; font-size: 13px; line-height: 1.3; }
+
+  .timeline-titulo {
+    font-size: 14px;
+    font-weight: 800;
+    color: #2c5282;
+    margin: 18px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .timeline { position: relative; padding-left: 30px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    background: linear-gradient(to bottom, #4299e1 0%, #63b3ed 50%, #cbd5e0 100%);
+    border-radius: 3px;
+  }
+  .tl-item {
+    position: relative;
+    background: linear-gradient(135deg, #fff 0%, #f7fafc 100%);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    border-left: 4px solid #4299e1;
+    animation: slideUp .4s ease backwards;
+  }
+  .tl-item:nth-child(1) { animation-delay: .05s; }
+  .tl-item:nth-child(2) { animation-delay: .1s; }
+  .tl-item:nth-child(3) { animation-delay: .15s; }
+  .tl-item:nth-child(4) { animation-delay: .2s; }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 16px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #4299e1;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #bee3f8;
+  }
+  .tl-item.completado:first-child {
+    border-left-color: #2c5282;
+    background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+  }
+  .tl-item.completado:first-child::before {
+    background: #2c5282;
+    box-shadow: 0 0 0 2px #90cdf4;
+  }
+  .tl-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .tl-estado { font-size: 13px; font-weight: 800; color: #1a365d; }
+  .tl-fecha {
+    font-size: 10px;
+    color: #718096;
+    font-weight: 600;
+    background: #fff;
+    padding: 3px 10px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+  .tl-obs {
+    font-size: 12px;
+    color: #4a5568;
+    background: rgba(255,255,255,.8);
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .tl-resp { font-size: 11px; color: #718096; }
+  .tl-resp strong { color: #4a5568; }
+
+  .mensaje-final {
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    margin-top: 18px;
+    background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+    border: 2px dashed #68d391;
+  }
+  .mensaje-final.recogido { background: linear-gradient(135deg, #f0fff4 0%, #9ae6b4 100%); border-color: #38a169; border-style: solid; }
+  .mensaje-final.listo { background: linear-gradient(135deg, #fefcbf 0%, #f6e05e 100%); border-color: #d69e2e; }
+  .mensaje-final.proceso { background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%); border-color: #4299e1; }
+  .mensaje-final.recibido { background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%); border-color: #718096; }
+  .mensaje-final .icono { font-size: 44px; margin-bottom: 10px; display: block; }
+  .mensaje-final .texto {
+    font-size: 16px;
+    color: #22543d;
+    font-weight: 800;
+    line-height: 1.4;
+    letter-spacing: .3px;
+  }
+  .mensaje-final.listo .texto { color: #744210; }
+  .mensaje-final.proceso .texto { color: #2c5282; }
+  .mensaje-final.recibido .texto { color: #2d3748; }
+  .mensaje-final .sub {
+    font-size: 13px;
+    color: #2f855a;
+    margin-top: 8px;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+  .mensaje-final.listo .sub { color: #b7791f; }
+  .mensaje-final.proceso .sub { color: #3182ce; }
+  .mensaje-final.recibido .sub { color: #4a5568; }
+  .mensaje-final .firma {
+    font-size: 10px;
+    color: #2f855a;
+    margin-top: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(0,0,0,.1);
+  }
+  .mensaje-final.listo .firma { color: #b7791f; }
+  .mensaje-final.proceso .firma { color: #3182ce; }
+  .mensaje-final.recibido .firma { color: #4a5568; }
+
+  .no-encontrado {
+    text-align: center;
+    padding: 32px 18px;
+    background: #fff5f5;
+    border-radius: 14px;
+    border: 2px dashed #fc8181;
+    margin-top: 18px;
+    animation: slideUp .4s ease;
+  }
+  .no-encontrado .icono { font-size: 40px; margin-bottom: 10px; display: block; }
+  .no-encontrado .msg { font-size: 14px; color: #9b2c2c; font-weight: 600; line-height: 1.5; }
+
+  .loading {
+    text-align: center;
+    padding: 32px 18px;
+    color: #2c5282;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ebf8ff;
+    border-top-color: #2c5282;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer {
+    text-align: center;
+    margin: 20px 0 10px;
+    color: #718096;
+    font-size: 11px;
+    line-height: 1.5;
+    padding: 0 10px;
+  }
+
+  @media (max-width: 380px) {
+    .info-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 17px; }
+    .ficha-header { padding: 14px; }
+    .ficha-header .codigo { font-size: 16px; }
+  }
+
+  @media (min-width: 600px) {
+    body { padding: 20px; }
+    #resultado { padding: 0 24px 24px; }
+    .form-busqueda { padding: 32px 28px; }
+    .form-busqueda .input-group { flex-direction: row; }
+    .form-busqueda button { width: auto; padding: 15px 30px; }
+    .hero h1 { font-size: 24px; }
+    .hero p { font-size: 15px; }
+    .hero .logo { width: 110px; height: 110px; }
+    .info-grid { gap: 14px 20px; }
+    .info-grid .dato { font-size: 14px; }
+    .info-grid .dato .val { font-size: 14px; }
+    .tl-estado { font-size: 15px; }
+    .tl-obs { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+  <div class="hero">
+    <img src="imagenes/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+    <h1>Unidad Educativa Pacallo</h1>
+    <p>Sistema de Seguimiento de Solicitudes</p>
+    <div class="titulo-sistema">Consulta pública</div>
+  </div>
+
+  <div class="card-blanco">
+    <div class="form-busqueda">
+      <label>🔎 Ingresa tu código de solicitud</label>
+      <div class="input-group">
+        <input type="text" id="input-codigo" placeholder="Código aquí" autocomplete="off" autocapitalize="characters">
+        <button id="btn-consultar">Consultar</button>
+      </div>
+      <p class="ayuda">Encuentra tu código en el comprobante que te entregaron al registrar la solicitud.</p>
+    </div>
+    <div id="resultado"></div>
+  </div>
+
+  <div class="footer">
+    © Unidad Educativa Pacallo — Secretaría<br>
+    Todos los derechos reservados
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDr7Yj_zOpj7bWy28FguurKW_kQwePPMso",
+  authDomain: "colegio-9c28b.firebaseapp.com",
+  projectId: "colegio-9c28b",
+  storageBucket: "colegio-9c28b.firebasestorage.app",
+  messagingSenderId: "58361465308",
+  appId: "1:58361465308:web:accf29a82ee77a47f8a719",
+  databaseURL: "https://colegio-9c28b-default-rtdb.firebaseio.com"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const input = document.getElementById('input-codigo');
+const cont = document.getElementById('resultado');
+const btn = document.getElementById('btn-consultar');
+
+btn.addEventListener('click', consultar);
+input.addEventListener('keypress', e => { if (e.key === 'Enter') consultar(); });
+
+async function consultar() {
+  const codigo = input.value.trim().toUpperCase();
+  if (!codigo) {
+    cont.innerHTML = `<div class="no-encontrado"><span class="icono">📝</span><div class="msg">Por favor ingresa un código.</div></div>`;
+    return;
+  }
+  cont.innerHTML = `<div class="loading"><div class="spinner"></div>Buscando tu solicitud...</div>`;
+  try {
+    const snap = await get(ref(db, `solicitudes/${codigo}`));
+    if (!snap.exists()) {
+      cont.innerHTML = `<div class="no-encontrado">
+        <span class="icono">🔍</span>
+        <div class="msg">No encontramos una solicitud con el código <strong>${codigo}</strong>.<br>
+        Verifica el código o contacta a la Secretaría.</div>
+      </div>`;
+      return;
+    }
+    const s = snap.val();
+    cont.innerHTML = fichaSeguimiento(s);
+  } catch (err) {
+    cont.innerHTML = `<div class="no-encontrado"><span class="icono">⚠️</span><div class="msg">Error al consultar: ${err.message}</div></div>`;
+  }
+}
+
+function fichaSeguimiento(s) {
+  const histArr = s.historial ? Object.values(s.historial) : [];
+  histArr.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+  const timelineHTML = histArr.map(h => `
+    <div class="tl-item completado">
+      <div class="tl-top">
+        <div class="tl-estado">${h.estadoActual}</div>
+        <div class="tl-fecha">${formatoFecha(h.fecha)}</div>
+      </div>
+      <div class="tl-obs">${h.observacion || 'Sin observación.'}</div>
+      <div class="tl-resp">👤 <strong>${h.responsable || 'sistema'}</strong></div>
+    </div>
+  `).join('');
+
+  const fechaEditada = s.fechaEditadaManual ? '<span style="color:#dd6b20; font-size:11px;"> (ajustada)</span>' : '';
+
+  // ====== MENSAJE SEGÚN ESTADO ======
+  let claseMensaje, icono, textoPrincipal, textoSub;
+
+  if (s.estado === 'Recogido') {
+    claseMensaje = 'recogido';
+    icono = '🎉';
+    textoPrincipal = '¡SE ENTREGÓ CON ÉXITO!';
+    textoSub = 'Tu solicitud ha sido completada. El seguimiento ha finalizado. ¡Gracias por tu paciencia!';
+  } else if (s.estado === 'Listo para recoger') {
+    claseMensaje = 'listo';
+    icono = '📬';
+    textoPrincipal = '¡LISTO PARA RECOGER!';
+    textoSub = 'Tu documento ya está disponible. Puedes pasar a retirarlo por Secretaría en horario de atención.';
+  } else if (s.estado === 'En proceso') {
+    claseMensaje = 'proceso';
+    icono = '⏳';
+    textoPrincipal = 'En proceso';
+    textoSub = 'Estamos trabajando en tu solicitud. Te pedimos un poco de paciencia.';
+  } else {
+    claseMensaje = 'recibido';
+    icono = '📥';
+    textoPrincipal = 'Solicitud recibida';
+    textoSub = 'Hemos registrado tu solicitud. Pronto comenzaremos a procesarla.';
+  }
+
+  const mensajeFinal = `<div class="mensaje-final ${claseMensaje}">
+    <span class="icono">${icono}</span>
+    <div class="texto">${textoPrincipal}</div>
+    <div class="sub">${textoSub}</div>
+    <div class="firma">Secretaría — Unidad Educativa Pacallo</div>
+  </div>`;
+
+  return `
+  <div class="ficha">
+    <div class="ficha-header">
+      <div>
+        <div class="codigo">${s.codigo}</div>
+        <div class="sub">Registrada el ${formatoFecha(s.fechaRegistro)}</div>
+      </div>
+      <span class="estado-badge">${s.estado}</span>
+    </div>
+
+    <div class="info-card">
+      <div class="titulo">📄 Detalles de la solicitud</div>
+      <div class="info-grid">
+        <div class="dato"><span class="lbl">Solicitante</span><span class="val">${s.solicitante}</span></div>
+        <div class="dato"><span class="lbl">Documento</span><span class="val">${s.tipoDocumento}</span></div>
+        <div class="dato"><span class="lbl">Alumno</span><span class="val">${s.alumno}</span></div>
+        <div class="dato"><span class="lbl">Curso</span><span class="val">${s.curso}</span></div>
+        <div class="dato"><span class="lbl">Gestión solicitada</span><span class="val">${s.gestion}</span></div>
+        <div class="dato"><span class="lbl">Recepción</span><span class="val">${s.fechaRecepcionDocumento}</span></div>
+        <div class="dato"><span class="lbl">Estimada</span><span class="val">${s.fechaEstimada}${fechaEditada}</span></div>
+      </div>
+    </div>
+
+    <div class="timeline-titulo">📌 Seguimiento</div>
+    <div class="timeline">${timelineHTML}</div>
+
+    ${mensajeFinal}
+  </div>`;
+}
+
+function formatoFecha(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+</script>
+</body>
+</html>
